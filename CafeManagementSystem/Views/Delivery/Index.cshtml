@@ -1,0 +1,68 @@
+@model List<CafeManagementSystem.Models.Entities.Delivery>
+@{
+    ViewData["Title"] = "Giao Hàng & Thu COD";
+}
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-bicycle text-info me-2"></i>Quản Lý Giao Hàng & Thu Tiền COD (Shipper)</h3>
+            <p class="text-muted mb-0">Cập nhật tiến độ giao đồ uống và nộp tiền COD về ca thu ngân</p>
+        </div>
+        <span class="badge bg-info text-dark fs-6 px-3 py-2">
+            <i class="bi bi-truck me-1"></i> Delivery Staff
+        </span>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info p-4 text-center rounded-3 shadow-sm">
+            <i class="bi bi-info-circle-fill fs-2 d-block mb-2 text-info"></i>
+            <h5>Chưa có chuyến giao hàng nào được gán cho tài xế.</h5>
+            <p class="text-muted mb-0">Khi khách đặt hàng online cần giao tận nơi, đơn hàng sẽ xuất hiện tại đây.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle shadow-sm bg-white rounded-3">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã Đơn</th>
+                        <th>Người Nhận</th>
+                        <th>Số Điện Thoại</th>
+                        <th>Địa Chỉ Giao</th>
+                        <th>Tiền COD</th>
+                        <th>Thu COD</th>
+                        <th>Trạng Thái Giao</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary">#@d.Order.OrderCode</td>
+                            <td>@d.RecipientName</td>
+                            <td>@d.RecipientPhone</td>
+                            <td>@d.ShippingAddress</td>
+                            <td class="fw-bold">@d.CodAmount.ToString("N0") đ</td>
+                            <td>
+                                @if (d.IsCodCollected)
+                                {
+                                    <span class="badge bg-success">Đã thu COD</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Chưa thu</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">@d.DeliveryStatus</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

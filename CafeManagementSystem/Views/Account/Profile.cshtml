@@ -1,0 +1,128 @@
+@model CafeManagementSystem.Models.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Hồ Sơ Cá Nhân";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Thông tin tổng quan -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 text-center p-4">
+                <div class="avatar-circle mx-auto mb-3 bg-primary text-white d-flex align-items-center justify-content-center rounded-circle" style="width: 90px; height: 90px; font-size: 36px;">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <h5 class="fw-bold mb-1">@Model.FullName</h5>
+                <p class="text-muted mb-2">@Model.Phone</p>
+
+                <div class="mb-3">
+                    @if (Model.RoleName == "Admin")
+                    {
+                        <span class="badge bg-danger fs-6 px-3 py-2"><i class="bi bi-shield-lock me-1"></i> Quản Trị Viên (Admin)</span>
+                    }
+                    else if (Model.RoleName == "Cashier")
+                    {
+                        <span class="badge bg-primary fs-6 px-3 py-2"><i class="bi bi-calculator me-1"></i> Thu Ngân (Cashier)</span>
+                    }
+                    else if (Model.RoleName == "Barista")
+                    {
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2"><i class="bi bi-cup-hot me-1"></i> Pha Chế (Barista)</span>
+                    }
+                    else if (Model.RoleName == "DeliveryStaff")
+                    {
+                        <span class="badge bg-info text-dark fs-6 px-3 py-2"><i class="bi bi-bicycle me-1"></i> Giao Hàng (Shipper)</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success fs-6 px-3 py-2"><i class="bi bi-person-heart me-1"></i> Khách Hàng (Customer)</span>
+                    }
+                </div>
+
+                @if (Model.RoleName == "Customer")
+                {
+                    <div class="card bg-warning bg-opacity-10 border-warning p-3 mt-2 rounded-3 text-start">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted fw-bold d-block">ĐIỂM TÍCH LŨY HIỆN CÓ</small>
+                                <span class="fs-3 fw-bold text-dark">@Model.LoyaltyPoints.ToString("N0") <small class="fs-6 text-muted">điểm</small></span>
+                            </div>
+                            <i class="bi bi-award-fill text-warning fs-1"></i>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="bi bi-info-circle me-1"></i> 1 điểm = 1.000đ khi thanh toán đơn hàng tại quầy hoặc online.
+                        </small>
+                    </div>
+                }
+
+                <div class="text-muted small mt-4 pt-3 border-top text-start">
+                    <div><i class="bi bi-calendar3 me-2"></i>Tham gia: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                    <div><i class="bi bi-shield-check me-2 text-success"></i>Tài khoản đang hoạt động</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cập nhật thông tin chi tiết -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Cập Nhật Thông Tin Cá Nhân</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Profile" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="UserId" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label fw-semibold"></label> <span class="text-danger">*</span>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input asp-for="FullName" class="form-control" />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Phone" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                    <input asp-for="Phone" class="form-control bg-light" readonly />
+                                </div>
+                                <small class="text-muted">Số điện thoại là mã định danh, không thể thay đổi.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input asp-for="Email" class="form-control" placeholder="example@mail.com" />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Address" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <input asp-for="Address" class="form-control" placeholder="Địa chỉ giao hàng mặc định" />
+                            </div>
+                            <span asp-validation-for="Address" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Login" class="btn btn-outline-secondary">Quay lại</a>
+                            <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                                <i class="bi bi-save me-1"></i> Lưu Thay Đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

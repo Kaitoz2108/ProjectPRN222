@@ -1,0 +1,68 @@
+@model List<CafeManagementSystem.Models.Entities.Order>
+@{
+    ViewData["Title"] = "Màn hình KDS Pha Chế";
+}
+
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-cup-hot-fill text-warning me-2"></i>Màn Hình Pha Chế (KDS - Barista)</h3>
+            <p class="text-muted mb-0">Hàng đợi các món nước đang chờ pha chế và giao cho khách</p>
+        </div>
+        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+            <i class="bi bi-hourglass-split me-1"></i> @Model.Count đơn chờ pha chế
+        </span>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success p-4 text-center rounded-3 shadow-sm">
+            <i class="bi bi-check-circle-fill fs-2 d-block mb-2 text-success"></i>
+            <h5>Hiện tại không có món nước nào đang chờ pha chế!</h5>
+            <p class="text-muted mb-0">Hệ thống sẽ hiển thị thẻ đơn ngay khi Thu ngân (Cashier) hoặc Khách hàng đặt món mới.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var order in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-2 @(order.PreparationStatus == "Preparing" ? "border-primary" : "border-warning")">
+                        <div class="card-header @(order.PreparationStatus == "Preparing" ? "bg-primary text-white" : "bg-warning text-dark") d-flex justify-content-between align-items-center py-2">
+                            <span class="fw-bold">#@order.OrderCode</span>
+                            <span class="badge @(order.PreparationStatus == "Preparing" ? "bg-light text-primary" : "bg-dark text-white")">
+                                @order.PreparationStatus
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between small text-muted mb-2">
+                                <span><i class="bi bi-clock me-1"></i>@order.CreatedAt.ToString("HH:mm:ss")</span>
+                                <span><i class="bi bi-tag me-1"></i>@order.OrderSource</span>
+                            </div>
+                            <ul class="list-group list-group-flush mb-3">
+                                @foreach (var item in order.OrderItems)
+                                {
+                                    <li class="list-group-item px-0 py-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong>@item.Quantity x @item.Variant?.Product?.ProductName</strong>
+                                            <span class="badge bg-secondary">Size @item.Variant?.SizeName</span>
+                                        </div>
+                                        <div class="small text-muted">
+                                            <span>Đường: @(item.SugarLevel ?? "100%")</span> |
+                                            <span>Đá: @(item.IceLevel ?? "100%")</span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(item.ItemNote))
+                                        {
+                                            <div class="small text-danger fst-italic">Note: @item.ItemNote</div>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

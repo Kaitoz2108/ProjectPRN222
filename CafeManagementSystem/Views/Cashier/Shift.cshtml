@@ -1,0 +1,296 @@
+@model CafeManagementSystem.Models.ViewModels.CashierShiftViewModel
+@{
+    ViewData["Title"] = "Quản Lý Ca Thu Ngân & Bàn Giao Tiền Mặt";
+}
+
+<div class="container-fluid py-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="bi bi-cash-coin text-success me-2"></i>Quản Lý Ca Làm Việc & Bàn Giao Tiền Mặt
+            </h3>
+            <p class="text-muted mb-0">Theo dõi doanh thu tiền mặt, két tiền thu ngân và bàn giao ca làm việc</p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (Model.HasOpenShift)
+            {
+                <span class="badge bg-success fs-6 px-3 py-2 d-flex align-items-center">
+                    <span class="spinner-grow spinner-grow-sm me-2" role="status"></span> Ca đang MỞ (#@Model.CurrentShift!.ShiftId)
+                </span>
+                <a asp-action="POS" class="btn btn-primary px-3 fw-semibold">
+                    <i class="bi bi-cart3 me-1"></i> Bán Hàng Tại POS
+                </a>
+            }
+            else
+            {
+                <span class="badge bg-secondary fs-6 px-3 py-2">
+                    <i class="bi bi-door-closed me-1"></i> Chưa có Ca Mở
+                </span>
+            }
+        </div>
+    </div>
+
+    @if (!Model.HasOpenShift)
+    {
+        <!-- ======================================================== -->
+        <!-- TRƯỜNG HỢP 1: CASHIER CHƯA CÓ CA OPEN -> MỞ CA MỚI -->
+        <!-- ======================================================== -->
+        <div class="row g-4 justify-content-center">
+            <!-- Thông tin ca đóng gần nhất (Previous Shift Information) -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-light py-3 border-bottom">
+                        <h5 class="fw-bold text-secondary mb-0">
+                            <i class="bi bi-clock-history me-2"></i>Thông Tin Ca Trước Để Lại (Previous Shift)
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        @if (Model.PreviousShift != null)
+                        {
+                            <div class="mb-3">
+                                <span class="text-muted d-block small">MÃ CA TRƯỚC</span>
+                                <span class="fw-bold fs-5 text-dark">#@Model.PreviousShift.ShiftId</span>
+                            </div>
+                            <div class="mb-3">
+                                <span class="text-muted d-block small">THỜI GIAN ĐÓNG CA</span>
+                                <span class="fw-semibold text-dark">
+                                    @(Model.PreviousShift.EndTime?.ToString("dd/MM/yyyy HH:mm:ss") ?? "Chưa ghi nhận")
+                                </span>
+                            </div>
+                            <div class="mb-3 p-3 bg-success bg-opacity-10 border border-success rounded-3">
+                                <span class="text-success fw-bold d-block small">TIỀN MẶT BÀN GIAO TRONG KÉT</span>
+                                <span class="fs-3 fw-bold text-success">
+                                    @((Model.PreviousShift.ClosingActualCash ?? 0).ToString("N0")) đ
+                                </span>
+                            </div>
+                            <div class="mb-3">
+                                <span class="text-muted d-block small">GHI CHÚ BÀN GIAO CỦA CA TRƯỚC</span>
+                                <div class="p-2 bg-light rounded border text-secondary fst-italic">
+                                    @(string.IsNullOrWhiteSpace(Model.PreviousShift.HandoverNotes) ? "Không có ghi chú" : Model.PreviousShift.HandoverNotes)
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle me-1"></i> Chưa có dữ liệu ca làm việc trước đó. Bạn có thể nhập số tiền mặt đầu ngày để khởi tạo ca đầu tiên.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form mở ca mới (OpenShift Form) -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm border-0 border-top border-primary border-4 h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="fw-bold text-primary mb-0">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Xác Nhận Tiền Mặt Đầu Ca & Mở Ca Mới
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form asp-action="OpenShift" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label asp-for="InputOpeningCash" class="form-label fw-semibold"></label> <span class="text-danger">*</span>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text"><i class="bi bi-cash"></i></span>
+                                    <input asp-for="InputOpeningCash" type="number" step="1000" class="form-control fw-bold text-success" />
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <small class="text-muted">
+                                    Số tiền mặt thực tế kiểm đếm được trong két khi bắt đầu ca (tiền thối lẻ bàn giao).
+                                </small>
+                                <span asp-validation-for="InputOpeningCash" class="text-danger small d-block"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="InputOpeningNotes" class="form-label fw-semibold"></label>
+                                <textarea asp-for="InputOpeningNotes" class="form-control" rows="2" placeholder="VD: Đã nhận đủ tiền lẻ mệnh giá 10k, 20k, 50k..."></textarea>
+                            </div>
+
+                            <div class="mb-4 p-3 bg-warning bg-opacity-10 border border-warning rounded-3">
+                                <div class="form-check">
+                                    <input asp-for="IsOpeningCashConfirmed" class="form-check-input" id="confirmCheck" />
+                                    <label class="form-check-label fw-bold text-dark" for="confirmCheck">
+                                        Tôi xác nhận đã kiểm đếm thực tế chính xác số tiền mặt đầu ca trong két (Cash Confirmation).
+                                    </label>
+                                </div>
+                                <span asp-validation-for="IsOpeningCashConfirmed" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg fw-semibold">
+                                    <i class="bi bi-key-fill me-1"></i> Bấm Mở Ca Làm Việc Mới
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- ======================================================== -->
+        <!-- TRƯỜNG HỢP 2: CASHIER ĐANG CÓ CA "OPEN" -->
+        <!-- ======================================================== -->
+        <div class="row g-4">
+            <!-- Cột trái: Thông tin ca & Doanh thu tiền mặt (Shift & Cash Information) -->
+            <div class="col-lg-7">
+                <!-- 3 Thẻ thống kê tiền mặt -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm bg-light p-3 rounded-3 text-center border-start border-primary border-4">
+                            <span class="text-muted small fw-semibold">TIỀN MẶT ĐẦU CA</span>
+                            <h4 class="fw-bold text-primary mt-1 mb-0">
+                                @Model.CurrentShift!.OpeningCash.ToString("N0") đ
+                            </h4>
+                            <small class="text-success"><i class="bi bi-check2-circle"></i> Đã xác nhận</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm bg-light p-3 rounded-3 text-center border-start border-success border-4">
+                            <span class="text-muted small fw-semibold">TIỀN MẶT HỆ THỐNG BÁN</span>
+                            <h4 class="fw-bold text-success mt-1 mb-0">
+                                @Model.CurrentShift.SystemCashSales.ToString("N0") đ
+                            </h4>
+                            <small class="text-muted">(@Model.ShiftCashOrders.Count đơn tiền mặt)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm bg-warning bg-opacity-25 p-3 rounded-3 text-center border-start border-warning border-4">
+                            <span class="text-dark small fw-bold">TIỀN MẶT DỰ KIẾN TRONG KÉT</span>
+                            <h4 class="fw-bold text-danger mt-1 mb-0">
+                                @Model.ExpectedCash.ToString("N0") đ
+                            </h4>
+                            <small class="text-muted">Đầu ca + Doanh thu</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danh sách đơn tiền mặt trong ca -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-receipt me-2 text-primary"></i>Danh Sách Đơn Hàng Tiền Mặt Trong Ca
+                        </h5>
+                        <span class="badge bg-secondary">@Model.ShiftCashOrders.Count đơn</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Mã Đơn</th>
+                                        <th>Thời Gian</th>
+                                        <th>Khách Hàng</th>
+                                        <th>Món Nước</th>
+                                        <th class="text-end">Tổng Tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (!Model.ShiftCashOrders.Any())
+                                    {
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4 text-muted">
+                                                <i class="bi bi-inbox fs-3 d-block mb-1"></i>
+                                                Chưa có đơn hàng thanh toán tiền mặt nào trong ca này.
+                                            </td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var ord in Model.ShiftCashOrders)
+                                        {
+                                            <tr>
+                                                <td class="fw-bold text-primary">#@ord.OrderCode</td>
+                                                <td class="small text-muted">@ord.CreatedAt.ToString("HH:mm:ss")</td>
+                                                <td>@(ord.Customer?.FullName ?? "Khách vãng lai")</td>
+                                                <td class="small">
+                                                    @string.Join(", ", ord.OrderItems.Select(i => $"{i.Quantity}x {i.Variant.Product.ProductName} ({i.Variant.SizeName})"))
+                                                </td>
+                                                <td class="fw-bold text-end text-success">@ord.TotalAmount.ToString("N0") đ</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light d-flex justify-content-between">
+                        <span class="fw-semibold">Tổng cộng tiền mặt thu được:</span>
+                        <span class="fw-bold text-success fs-5">@Model.TotalCashSales.ToString("N0") đ</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Form Đóng Ca & Bàn Giao Tiền Mặt (Shift & Handover Data) -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 border-top border-danger border-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h5 class="fw-bold text-danger mb-0">
+                            <i class="bi bi-lock-fill me-2"></i>Đóng Ca Làm Việc & Bàn Giao Két Tiền
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-warning py-2 mb-3 small">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                            <strong>Lưu ý:</strong> Vui lòng đếm chính xác toàn bộ tiền mặt trong két trước khi nhập. Hệ thống sẽ tự động tính độ lệch tiền thừa/thiếu (<code>Discrepancy</code>).
+                        </div>
+
+                        <div class="mb-3 p-3 bg-light rounded-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Mã ca làm việc:</span>
+                                <span class="fw-bold">#@Model.CurrentShift.ShiftId</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Thời gian mở:</span>
+                                <span class="fw-semibold">@Model.CurrentShift.StartTime.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Tiền mặt dự kiến:</span>
+                                <span class="fw-bold text-danger">@Model.ExpectedCash.ToString("N0") đ</span>
+                            </div>
+                        </div>
+
+                        <form asp-action="CloseShift" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label asp-for="ClosingActualCash" class="form-label fw-semibold"></label> <span class="text-danger">*</span>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text"><i class="bi bi-cash-stack"></i></span>
+                                    <input asp-for="ClosingActualCash" type="number" step="1000" class="form-control fw-bold text-danger" placeholder="Nhập số tiền đếm được" />
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="ClosingActualCash" class="text-danger small d-block"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="HandoverNotes" class="form-label fw-semibold"></label>
+                                <textarea asp-for="HandoverNotes" class="form-control" rows="3" placeholder="Ghi chú số lượng tờ tiền lẻ hoặc lý do chênh lệch thừa/thiếu (nếu có)..."></textarea>
+                                <span asp-validation-for="HandoverNotes" class="text-danger small d-block"></span>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-danger btn-lg fw-semibold" onclick="return confirm('Bạn có chắc chắn muốn đóng ca và bàn giao số tiền này không?')">
+                                    <i class="bi bi-check2-circle me-1"></i> Xác Nhận Đóng Ca & Bàn Giao
+                                </button>
+                                <a asp-action="POS" class="btn btn-outline-primary">
+                                    <i class="bi bi-cart3 me-1"></i> Tiếp Tục Bán Hàng Tại POS
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

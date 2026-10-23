@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Từ Chối Truy Cập";
+}
+
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 text-center">
+        <div class="card shadow-sm border-0 p-5">
+            <div class="mb-3 text-danger">
+                <i class="bi bi-shield-slash fs-1" style="font-size: 4rem !important;"></i>
+            </div>
+            <h3 class="fw-bold text-danger mb-2">Từ Chối Truy Cập</h3>
+            <p class="text-muted mb-4">
+                Tài khoản của bạn không có quyền truy cập vào chức năng hoặc trang này. Vui lòng liên hệ Admin nếu bạn cần cấp quyền.
+            </p>
+            <div>
+                <a asp-controller="Account" asp-action="Login" class="btn btn-primary px-4">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Về Trang Chủ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
