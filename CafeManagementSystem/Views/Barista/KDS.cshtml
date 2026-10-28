@@ -1,32 +1,45 @@
-@model List<CafeManagementSystem.Models.Entities.Order>
+@model CafeManagementSystem.Models.ViewModels.KdsIndexViewModel
 @{
     ViewData["Title"] = "Màn hình KDS Pha Chế";
 }
+<meta http-equiv="refresh" content="15">
 
 <div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h3 class="fw-bold text-dark mb-1"><i class="bi bi-cup-hot-fill text-warning me-2"></i>Màn Hình Pha Chế (KDS - Barista)</h3>
             <p class="text-muted mb-0">Hàng đợi các món nước đang chờ pha chế và giao cho khách</p>
         </div>
-        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
-            <i class="bi bi-hourglass-split me-1"></i> @Model.Count đơn chờ pha chế
-        </span>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                <i class="bi bi-hourglass-split me-1"></i> Chờ: @Model.TotalPendingCount
+            </span>
+            <span class="badge bg-primary fs-6 px-3 py-2">
+                <i class="bi bi-fire me-1"></i> Đang làm: @Model.TotalPreparingCount
+            </span>
+            <span class="badge bg-dark fs-6 px-3 py-2">
+                <i class="bi bi-cup-straw me-1"></i> Tổng ly: @Model.TotalCupsWaiting
+            </span>
+            <a class="btn btn-outline-dark" asp-controller="Barista" asp-action="Wastage">
+                <i class="bi bi-box-seam me-1"></i> Kho Quầy Bar & Báo Hao Hụt
+            </a>
+        </div>
     </div>
 
-    @if (!Model.Any())
+    @if (!Model.Orders.Any())
     {
         <div class="alert alert-success p-4 text-center rounded-3 shadow-sm">
             <i class="bi bi-check-circle-fill fs-2 d-block mb-2 text-success"></i>
             <h5>Hiện tại không có món nước nào đang chờ pha chế!</h5>
-            <p class="text-muted mb-0">Hệ thống sẽ hiển thị thẻ đơn ngay khi Thu ngân (Cashier) hoặc Khách hàng đặt món mới.</p>
+            <p class="text-muted mb-0">Hệ thống sẽ tự động làm mới sau 15 giây.</p>
         </div>
     }
     else
     {
         <div class="row g-3">
-            @foreach (var order in Model)
+            @foreach (var order in Model.Orders)
             {
+                var isLongWait = order.ElapsedMinutes > 10;
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-2 @(order.PreparationStatus == "Preparing" ? "border-primary" : "border-warning")">
                         <div class="card-header @(order.PreparationStatus == "Preparing" ? "bg-primary text-white" : "bg-warning text-dark") d-flex justify-content-between align-items-center py-2">
@@ -36,29 +49,113 @@
                             </span>
                         </div>
                         <div class="card-body">
-                            <div class="d-flex justify-content-between small text-muted mb-2">
-                                <span><i class="bi bi-clock me-1"></i>@order.CreatedAt.ToString("HH:mm:ss")</span>
-                                <span><i class="bi bi-tag me-1"></i>@order.OrderSource</span>
+                            <div class="d-flex justify-content-between small mb-2">
+                                <span class="text-muted"><i class="bi bi-clock me-1"></i>@order.CreatedAt.ToString("HH:mm:ss")</span>
+                                <span class="badge @(isLongWait ? "bg-danger" : "bg-secondary")">@order.ElapsedMinutes phút</span>
+                                <span class="badge bg-info text-dark"><i class="bi bi-tag me-1"></i>@order.OrderSource</span>
                             </div>
+                            @if (!string.IsNullOrEmpty(order.CustomerName))
+                            {
+                                <div class="small mb-2"><i class="bi bi-person me-1"></i>@order.CustomerName @(string.IsNullOrEmpty(order.CustomerPhone) ? "" : $"({order.CustomerPhone})")</div>
+                            }
+                            @if (!string.IsNullOrEmpty(order.OrderNote))
+                            {
+                                <div class="alert alert-secondary py-1 px-2 small mb-2">Ghi chú đơn: @order.OrderNote</div>
+                            }
                             <ul class="list-group list-group-flush mb-3">
-                                @foreach (var item in order.OrderItems)
+                                @foreach (var item in order.Items)
                                 {
                                     <li class="list-group-item px-0 py-2">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <strong>@item.Quantity x @item.Variant?.Product?.ProductName</strong>
-                                            <span class="badge bg-secondary">Size @item.Variant?.SizeName</span>
+                                            <strong>@item.Quantity x @item.ProductName</strong>
+                                            <span class="badge bg-secondary">Size @item.SizeName</span>
                                         </div>
                                         <div class="small text-muted">
-                                            <span>Đường: @(item.SugarLevel ?? "100%")</span> |
-                                            <span>Đá: @(item.IceLevel ?? "100%")</span>
+                                            <span>Đường: @(item.SugarLevel ?? "100%")</span> | <span>Đá: @(item.IceLevel ?? "100%")</span>
                                         </div>
                                         @if (!string.IsNullOrEmpty(item.ItemNote))
                                         {
                                             <div class="small text-danger fst-italic">Note: @item.ItemNote</div>
                                         }
+                                        @if (item.Recipes.Any())
+                                        {
+                                            <div class="mt-2">
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-bordered mb-1">
+                                                        <thead class="table-light">
+                                                            <tr class="small">
+                                                                <th>Nguyên liệu</th>
+                                                                <th>SL/ly</th>
+                                                                <th>Tổng</th>
+                                                                <th>ĐVT</th>
+                                                                <th>Tồn</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var r in item.Recipes)
+                                                            {
+                                                                <tr class="small @(r.IsLowStock ? "table-danger" : "")">
+                                                                    <td>@r.IngredientName</td>
+                                                                    <td>@r.QuantityRequiredPerCup.ToString("0.00")</td>
+                                                                    <td>@r.TotalQuantityRequired.ToString("0.00")</td>
+                                                                    <td>@r.Unit</td>
+                                                                    <td>@r.CurrentStock.ToString("0.00")</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <button class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#recipeModal_@order.OrderId@(System.Math.Abs(item.GetHashCode()))">
+                                                    <i class="bi bi-journal-text me-1"></i>Xem Chi Tiết Công Thức & Hướng Dẫn
+                                                </button>
+                                                <div class="modal fade" id="recipeModal_@order.OrderId@(System.Math.Abs(item.GetHashCode()))" tabindex="-1">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h6 class="modal-title">@item.Quantity x @item.ProductName - Size @item.SizeName</h6>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                @foreach (var r in item.Recipes)
+                                                                {
+                                                                    <div class="mb-2">
+                                                                        <div class="fw-semibold">@r.IngredientName (@r.TotalQuantityRequired.ToString("0.00") @r.Unit)</div>
+                                                                        <div class="small text-muted">@r.PreparationGuide</div>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
                                     </li>
                                 }
                             </ul>
+                        </div>
+                        <div class="card-footer bg-white">
+                            @if (order.PreparationStatus == "Pending")
+                            {
+                                <form asp-controller="Barista" asp-action="UpdatePreparationStatus" method="post" class="mb-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="orderId" value="@order.OrderId" />
+                                    <input type="hidden" name="newStatus" value="Preparing" />
+                                    <button class="btn btn-warning w-100"><i class="bi bi-play-fill me-1"></i>Bắt đầu pha chế</button>
+                                </form>
+                            }
+                            else if (order.PreparationStatus == "Preparing")
+                            {
+                                <form asp-controller="Barista" asp-action="UpdatePreparationStatus" method="post" onsubmit="return confirm('Xác nhận hoàn tất đơn và trừ kho tự động theo công thức?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="orderId" value="@order.OrderId" />
+                                    <input type="hidden" name="newStatus" value="Ready" />
+                                    <button class="btn btn-success w-100"><i class="bi bi-check-lg me-1"></i>Hoàn tất & Trừ kho tự động</button>
+                                </form>
+                            }
+                            @if (!string.IsNullOrEmpty(order.BaristaName))
+                            {
+                                <div class="small text-muted text-center mt-1">Barista: @order.BaristaName</div>
+                            }
                         </div>
                     </div>
                 </div>
