@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace CafeManagementSystem.Models.ViewModel;
+namespace CafeManagementSystem.Models.ViewModels;
 
 public class KdsIndexViewModel
 {
