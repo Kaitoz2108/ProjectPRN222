@@ -1,120 +1,34 @@
-@{
-    ViewData["Title"] = "Admin Dashboard";
-    var recentOrders = ViewBag.RecentOrders as List<CafeManagementSystem.Models.Entities.Order> ?? new();
-}
-
-<div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-speedometer2 text-danger me-2"></i>Bảng Điều Khiển Quản Trị (Admin)</h3>
-            <p class="text-muted mb-0">Hệ thống quản lý chuỗi Café CMS - Phân quyền & Điều hành</p>
-        </div>
-        <span class="badge bg-danger fs-6 px-3 py-2">
-            <i class="bi bi-shield-check me-1"></i> Admin Role Active
-        </span>
-    </div>
-
-    <!-- 4 KPI Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-primary text-white p-3 rounded-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-white-50 small fw-semibold">DOANH THU TOÀN HỆ THỐNG</div>
-                        <div class="fs-3 fw-bold mt-1">@(((decimal)ViewBag.TotalRevenue).ToString("N0")) đ</div>
-                    </div>
-                    <i class="bi bi-cash-stack fs-1 text-white-50"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-success text-white p-3 rounded-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-white-50 small fw-semibold">TỔNG SỐ ĐƠN HÀNG</div>
-                        <div class="fs-3 fw-bold mt-1">@ViewBag.TotalOrders</div>
-                    </div>
-                    <i class="bi bi-receipt-cutoff fs-1 text-white-50"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-info text-white p-3 rounded-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-white-50 small fw-semibold">NGƯỜI DÙNG HỆ THỐNG</div>
-                        <div class="fs-3 fw-bold mt-1">@ViewBag.TotalUsers</div>
-                    </div>
-                    <i class="bi bi-people-fill fs-1 text-white-50"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-warning text-dark p-3 rounded-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-black-50 small fw-semibold">NGUYÊN LIỆU SẮP HẾT</div>
-                        <div class="fs-3 fw-bold mt-1">@ViewBag.LowStockIngredients</div>
-                    </div>
-                    <i class="bi bi-exclamation-triangle-fill fs-1 text-black-50"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Đơn hàng gần đây -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2"></i>Đơn hàng mới nhất trong hệ thống</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Mã Đơn</th>
-                            <th>Khách Hàng</th>
-                            <th>Nguồn Đơn</th>
-                            <th>Tổng Tiền</th>
-                            <th>Trạng Thái Pha Chế</th>
-                            <th>Thời Gian Tạo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (!recentOrders.Any())
-                        {
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">Chưa có đơn hàng nào trong hệ thống.</td>
-                            </tr>
-                        }
-                        else
-                        {
-                            @foreach (var order in recentOrders)
-                            {
-                                <tr>
-                                    <td class="fw-bold text-primary">#@order.OrderCode</td>
-                                    <td>@(order.Customer?.FullName ?? "Khách vãng lai tại quầy")</td>
-                                    <td>
-                                        @if (order.OrderSource == "Counter")
-                                        {
-                                            <span class="badge bg-secondary">Tại quầy POS</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-info text-dark">Online</span>
-                                        }
-                                    </td>
-                                    <td class="fw-bold">@order.TotalAmount.ToString("N0") đ</td>
-                                    <td>
-                                        <span class="badge bg-warning text-dark">@order.PreparationStatus</span>
-                                    </td>
-                                    <td class="text-muted small">@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+@model AdminDashboardViewModel
+@{ ViewData["Title"] = "Báo cáo & Dashboard"; }
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-4"><h1 class="h3">Báo cáo kinh doanh</h1><nav><a asp-action="StaffSchedule" class="btn btn-outline-primary">Nhân sự & phân ca</a> <a asp-action="Complaints" class="btn btn-outline-primary">Khiếu nại</a></nav></div>
+<form method="get" action="@Url.Content("~/Admin/Dashboard")" class="card card-body mb-4">
+<div asp-validation-summary="All" class="text-danger" role="alert"></div><div class="row g-3 align-items-end">
+<div class="col-md-4"><label for="fromDate" class="form-label">Từ ngày</label><input id="fromDate" name="fromDate" type="date" value="@Model.FromDate.ToString("yyyy-MM-dd")" class="form-control" required /></div>
+<div class="col-md-4"><label for="toDate" class="form-label">Đến ngày (bao gồm)</label><input id="toDate" name="toDate" type="date" value="@Model.ToDate.ToString("yyyy-MM-dd")" class="form-control" required /></div>
+<div class="col-md-4"><button class="btn btn-primary">Xem báo cáo</button></div></div></form>
+<div class="row g-3 mb-4">
+<div class="col-md-4"><div class="card card-body h-100"><h2 class="h6">Doanh thu thuần</h2><strong class="fs-3 text-success">@Model.NetRevenue.ToString("N0") ₫</strong><small>Thu: @Model.GrossRevenue.ToString("N0") ₫ — Hoàn: @Model.RefundAmount.ToString("N0") ₫</small></div></div>
+<div class="col-md-4"><div class="card card-body h-100"><h2 class="h6">Đơn hàng</h2><strong class="fs-3">@Model.TotalOrders</strong><span>Online: @Model.OnlineOrders (@Model.OnlinePercent.ToString("N1")%) / Counter: @Model.CounterOrders (@Model.CounterPercent.ToString("N1")%)</span></div></div>
+<div class="col-md-4"><div class="card card-body h-100"><h2 class="h6">Chi phí nhập kho</h2><strong class="fs-3">@Model.RestockCost.ToString("N0") ₫</strong><small>Tổng |số lượng Restock| × đơn giá; đơn giá trống tính bằng 0.</small></div></div>
 </div>
+<p class="text-muted small">Doanh thu và hoàn tiền tính theo ngày giao dịch thành công. Đơn hàng, khiếu nại tính theo ngày tạo; ca thu ngân theo ngày mở ca. Top đồ uống từ đơn đã thanh toán, không bị hủy.</p>
+<div class="row g-3 mb-4"><section class="col-lg-6"><div class="card card-body h-100"><h2 class="h5">Top 5 đồ uống bán chạy</h2>
+@if (Model.TopProducts.Count == 0) { <p class="text-muted">Chưa có đồ uống bán ra trong kỳ.</p> }
+@foreach (var item in Model.TopProducts) {
+    var percent = 100m * item.Quantity / Math.Max(1, Model.TopProducts.Max(x => x.Quantity));
+    <div class="d-flex justify-content-between mt-2"><span>@item.ProductName</span><strong>@item.Quantity ly</strong></div>
+    <div class="progress" role="progressbar" aria-label="@item.ProductName" aria-valuenow="@item.Quantity" aria-valuemin="0" aria-valuemax="@Model.TopProducts.Max(x => x.Quantity)"><div class="progress-bar" style="width: @percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></div></div>
+}
+</div></section><section class="col-lg-6"><div class="card card-body h-100"><h2 class="h5">Khiếu nại & hoàn tiền</h2><dl class="row mb-0">
+<dt class="col-8">Tổng khiếu nại</dt><dd class="col-4">@Model.TotalComplaints</dd><dt class="col-8">Chờ xử lý (Pending)</dt><dd class="col-4">@Model.PendingComplaints</dd>
+<dt class="col-8">Điểm trung bình</dt><dd class="col-4">@(Model.AverageRating?.ToString("N1") ?? "Chưa có") / 5</dd><dt class="col-8">Tiền đã hoàn trong kỳ</dt><dd class="col-4">@Model.RefundAmount.ToString("N0") ₫</dd></dl></div></section></div>
+<section class="card card-body mb-4"><h2 class="h5">Đối soát ca thu ngân & két tiền</h2><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Ca / Thu ngân</th><th>Mở / đóng ca</th><th>Tiền đầu ca</th><th>Doanh số tiền mặt</th><th>Thực đếm cuối ca</th><th>Độ lệch</th></tr></thead><tbody>
+@foreach (var shift in Model.CashierShifts) {
+<tr class="@(shift.Discrepancy < 0 ? "table-danger" : "")"><td>#@shift.ShiftId — @shift.Cashier.FullName<br /><span class="badge bg-secondary">@shift.ShiftStatus</span></td><td>@shift.StartTime.ToString("dd/MM/yyyy HH:mm")<br />@(shift.EndTime?.ToString("dd/MM/yyyy HH:mm") ?? "Đang mở")</td><td>@shift.OpeningCash.ToString("N0")</td><td>@shift.SystemCashSales.ToString("N0")</td><td>@(shift.ClosingActualCash?.ToString("N0") ?? "Chưa chốt")</td><td class="fw-bold">@(shift.Discrepancy?.ToString("N0") ?? "—") @(shift.Discrepancy < 0 ? "(Thiếu tiền)" : "")</td></tr>
+}
+@if (Model.CashierShifts.Count == 0) { <tr><td colspan="6" class="text-muted">Không có ca trong kỳ.</td></tr> }
+</tbody></table></div><small>Đơn vị: VND. Độ lệch = thực đếm cuối ca − (tiền đầu ca + doanh số tiền mặt).</small></section>
+<section class="card card-body"><h2 class="h5">Tiêu hao & hao hụt kho</h2><div class="table-responsive"><table class="table"><thead><tr><th>Nguyên liệu</th><th>Đơn vị</th><th>Trừ theo đơn</th><th>Đổ / hỏng</th></tr></thead><tbody>
+@foreach (var item in Model.Inventory) { <tr><td>@item.IngredientName</td><td>@item.Unit</td><td>@item.OrderDeduction.ToString("N2")</td><td class="@(item.Wastage > 0 ? "text-danger fw-bold" : "")">@item.Wastage.ToString("N2")</td></tr> }
+@if (Model.Inventory.Count == 0) { <tr><td colspan="4" class="text-muted">Không có giao dịch tiêu hao trong kỳ.</td></tr> }
+</tbody></table></div><small>Tổng lượng theo từng nguyên liệu để không cộng lẫn đơn vị đo.</small></section>

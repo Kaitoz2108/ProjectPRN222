@@ -1,0 +1,43 @@
+@model AdminStaffScheduleViewModel
+@{ ViewData["Title"] = "Nhân sự, phân ca & chấm công"; }
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-4"><h1 class="h3">Nhân sự, phân ca & chấm công</h1><nav><a asp-action="Dashboard" class="btn btn-outline-primary">Dashboard</a> <a asp-action="Complaints" class="btn btn-outline-primary">Khiếu nại</a></nav></div>
+@if (TempData["OperationsSuccess"] is string success) { <div class="alert alert-success" role="status">@success</div> }
+<div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+<div class="row g-4 mb-4"><section class="col-lg-6"><div class="card card-body h-100"><h2 class="h5">Thêm tài khoản nhân viên</h2>
+<form asp-action="CreateStaff" method="post" class="row g-3">
+<div class="col-md-6"><label asp-for="NewStaff.FullName" class="form-label">Họ tên</label><input asp-for="NewStaff.FullName" class="form-control" maxlength="100" required /></div>
+<div class="col-md-6"><label asp-for="NewStaff.Phone" class="form-label">Điện thoại đăng nhập</label><input asp-for="NewStaff.Phone" class="form-control" maxlength="20" required /></div>
+<div class="col-md-6"><label asp-for="NewStaff.Email" class="form-label">Email</label><input asp-for="NewStaff.Email" type="email" class="form-control" maxlength="100" /></div>
+<div class="col-md-6"><label asp-for="NewStaff.Password" class="form-label">Mật khẩu (ít nhất 8 ký tự)</label><input asp-for="NewStaff.Password" class="form-control" autocomplete="new-password" minlength="8" maxlength="100" required /></div>
+<div class="col-md-6"><label asp-for="NewStaff.Role" class="form-label">Vai trò</label><select asp-for="NewStaff.Role" class="form-select"><option value="Cashier">Cashier</option><option value="Barista">Barista</option><option value="DeliveryStaff">DeliveryStaff</option></select></div>
+<div class="col-md-6 align-self-end"><div class="form-check"><input asp-for="NewStaff.IsActive" class="form-check-input" /><label asp-for="NewStaff.IsActive" class="form-check-label">Đang làm việc</label></div></div>
+<div class="col-12"><button class="btn btn-primary">Tạo nhân viên</button></div></form></div></section>
+<section class="col-lg-6"><div class="card card-body h-100"><h2 class="h5">Phân ca làm việc</h2><form asp-action="CreateSchedule" method="post" class="row g-3">
+<div class="col-12"><label asp-for="NewSchedule.StaffId" class="form-label">Nhân viên</label><select asp-for="NewSchedule.StaffId" class="form-select" required><option value="">Chọn nhân viên đang làm việc</option>@foreach (var staff in Model.Staff.Where(x => x.IsActive)) { <option value="@staff.UserId">@staff.FullName — @staff.Role.RoleName</option> }</select></div>
+<div class="col-md-5"><label asp-for="NewSchedule.WorkDate" class="form-label">Ngày làm việc</label><input asp-for="NewSchedule.WorkDate" type="date" class="form-control" required /></div>
+<div class="col-md-7"><label asp-for="NewSchedule.ShiftName" class="form-label">Khung giờ cố định</label><select asp-for="NewSchedule.ShiftName" class="form-select"><option value="Morning">Ca Sáng 07:00–12:00</option><option value="Afternoon">Ca Chiều 12:00–17:00</option><option value="Evening">Ca Tối 17:00–22:00</option></select></div>
+<div class="col-12"><label asp-for="NewSchedule.Note" class="form-label">Ghi chú</label><input asp-for="NewSchedule.Note" class="form-control" maxlength="255" /></div><div class="col-12"><button class="btn btn-primary">Lưu lịch & tạo chấm công</button></div></form></div></section></div>
+<section class="card card-body mb-4"><h2 class="h5">Danh sách nhân viên</h2><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Nhân viên</th><th>Liên hệ</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
+@foreach (var staff in Model.Staff) { <tr><td>@staff.FullName</td><td>@staff.Phone<br />@staff.Email</td><td>@staff.Role.RoleName</td><td><span class="badge @(staff.IsActive ? "bg-success" : "bg-secondary")">@(staff.IsActive ? "Đang làm việc" : "Ngừng làm việc")</span></td><td><form asp-action="SetStaffActive" method="post"><input type="hidden" name="staffId" value="@staff.UserId" /><input type="hidden" name="isActive" value="@((!staff.IsActive).ToString().ToLowerInvariant())" /><button class="btn btn-sm btn-outline-secondary">@(staff.IsActive ? "Ngừng làm việc" : "Kích hoạt")</button></form></td></tr> }
+@if (Model.Staff.Count == 0) { <tr><td colspan="5">Chưa có nhân viên.</td></tr> }
+</tbody></table></div></section>
+<section class="card card-body mb-4"><h2 class="h5">Lịch phân ca</h2><div class="table-responsive"><table class="table"><thead><tr><th>Ngày</th><th>Nhân viên</th><th>Ca</th><th>Bắt đầu</th><th>Kết thúc</th><th>Ghi chú</th></tr></thead><tbody>
+@foreach (var item in Model.Schedules) { <tr><td>@item.WorkDate.ToString("dd/MM/yyyy")</td><td>@item.Staff.FullName</td><td>@item.ShiftName</td><td>@item.StartTime.ToString("HH:mm")</td><td>@item.EndTime.ToString("HH:mm")</td><td>@item.Note</td></tr> }
+@if (Model.Schedules.Count == 0) { <tr><td colspan="6">Chưa có lịch phân ca.</td></tr> }
+</tbody></table></div></section>
+<section class="card card-body"><h2 class="h5">Theo dõi & cập nhật chấm công</h2><p class="text-muted">Pending = bản ghi mới, chưa chấm công. Giờ vào/ra sử dụng ngày và giờ địa phương của cửa hàng.</p><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Nhân viên / ca</th><th>Chấm công</th></tr></thead><tbody>
+@foreach (var item in Model.Attendances) {
+    var edit = Model.AttendanceEdit.AttendanceId == item.AttendanceId ? Model.AttendanceEdit : new AdminAttendanceInput { AttendanceId = item.AttendanceId, CheckInTime = item.CheckInTime, CheckOutTime = item.CheckOutTime, Status = item.Status, Note = item.Note };
+    <tr><td>@item.Staff.FullName<br />@item.Schedule.WorkDate.ToString("dd/MM/yyyy") — @item.Schedule.ShiftName<br /><span class="badge bg-secondary">@item.Status</span></td><td>
+    <form asp-action="UpdateAttendance" method="post" class="row g-2">
+    <input type="hidden" name="AttendanceEdit.AttendanceId" value="@item.AttendanceId" />
+    <div class="col-md-6"><label for="in-@item.AttendanceId" class="form-label">Giờ vào</label><input id="in-@item.AttendanceId" name="AttendanceEdit.CheckInTime" type="datetime-local" value="@edit.CheckInTime?.ToString("yyyy-MM-ddTHH:mm")" class="form-control" /></div>
+    <div class="col-md-6"><label for="out-@item.AttendanceId" class="form-label">Giờ ra</label><input id="out-@item.AttendanceId" name="AttendanceEdit.CheckOutTime" type="datetime-local" value="@edit.CheckOutTime?.ToString("yyyy-MM-ddTHH:mm")" class="form-control" /></div>
+    <div class="col-md-4"><label for="status-@item.AttendanceId" class="form-label">Trạng thái</label><select id="status-@item.AttendanceId" name="AttendanceEdit.Status" class="form-select" required>
+    @if (edit.Status == "Pending") { <option value="" selected>Chưa chấm công</option> }
+    @foreach (var status in new[] { "Present", "Late", "Absent", "Leave" }) { <option value="@status" selected="@(edit.Status == status)">@status</option> }
+    </select></div><div class="col-md-8"><label for="note-@item.AttendanceId" class="form-label">Ghi chú</label><input id="note-@item.AttendanceId" name="AttendanceEdit.Note" value="@edit.Note" maxlength="255" class="form-control" /></div>
+    <div class="col-12"><button class="btn btn-sm btn-primary">Cập nhật chấm công #@item.AttendanceId</button></div></form></td></tr>
+}
+@if (Model.Attendances.Count == 0) { <tr><td colspan="2">Chưa có bản ghi chấm công.</td></tr> }
+</tbody></table></div></section>
