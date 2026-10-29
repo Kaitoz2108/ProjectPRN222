@@ -34,3 +34,37 @@ public class AdminInventoryRow
     public decimal OrderDeduction { get; set; }
     public decimal Wastage { get; set; }
 }
+
+public class AdminStaffScheduleViewModel
+{
+    public List<User> Staff { get; set; } = [];
+    public List<WorkSchedule> Schedules { get; set; } = [];
+    public List<Attendance> Attendances { get; set; } = [];
+    public AdminCreateStaffInput NewStaff { get; set; } = new();
+    public AdminCreateScheduleInput NewSchedule { get; set; } = new();
+    public AdminAttendanceInput AttendanceEdit { get; set; } = new();
+}
+public class AdminCreateStaffInput
+{
+    [Required, StringLength(100)] public string FullName { get; set; } = "";
+    [Required, Phone, StringLength(20)] public string Phone { get; set; } = "";
+    [EmailAddress, StringLength(100)] public string? Email { get; set; }
+    [Required, StringLength(100, MinimumLength = 8), DataType(DataType.Password)] public string Password { get; set; } = "";
+    [Required, RegularExpression("^(Cashier|Barista|DeliveryStaff)$")] public string Role { get; set; } = "Cashier";
+    public bool IsActive { get; set; } = true;
+}
+public class AdminCreateScheduleInput
+{
+    [Range(1, int.MaxValue)] public int StaffId { get; set; }
+    public DateOnly WorkDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+    [Required, RegularExpression("^(Morning|Afternoon|Evening)$")] public string ShiftName { get; set; } = "Morning";
+    [StringLength(255)] public string? Note { get; set; }
+}
+public class AdminAttendanceInput
+{
+    [Range(1, int.MaxValue)] public int AttendanceId { get; set; }
+    public DateTime? CheckInTime { get; set; }
+    public DateTime? CheckOutTime { get; set; }
+    [Required, RegularExpression("^(Present|Late|Absent|Leave)$")] public string Status { get; set; } = "Present";
+    [StringLength(255)] public string? Note { get; set; }
+}
