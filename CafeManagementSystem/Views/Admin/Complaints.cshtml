@@ -1,0 +1,38 @@
+@model AdminComplaintsViewModel
+@{ ViewData["Title"] = "Khiếu nại & hoàn tiền"; }
+<div class="d-flex flex-wrap justify-content-between gap-2 mb-4"><h1 class="h3">Khiếu nại & hoàn tiền</h1><nav><a asp-action="Dashboard" class="btn btn-outline-primary">Dashboard</a> <a asp-action="StaffSchedule" class="btn btn-outline-primary">Nhân sự & phân ca</a></nav></div>
+@if (TempData["OperationsSuccess"] is string success) { <div class="alert alert-success" role="status">@success</div> }
+<div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+<p class="text-muted">@Model.Complaints.Count phản hồi. Hoàn tiền được ghi nhận qua giao dịch RefundGateway mô phỏng; chỉ duyệt tối đa phần đã thanh toán còn chưa hoàn.</p>
+@if (Model.Complaints.Count == 0) { <div class="alert alert-info">Chưa có khiếu nại hoặc phản hồi.</div> }
+@foreach (var item in Model.Complaints) {
+    var edit = Model.Resolution.ComplaintId == item.ComplaintId ? Model.Resolution : new AdminResolveComplaintInput { ComplaintId = item.ComplaintId };
+    var badge = item.ComplaintStatus switch { "Pending" => "bg-warning text-dark", "InProgress" => "bg-primary", "Resolved" => "bg-success", "Rejected" => "bg-danger", _ => "bg-secondary" };
+    var canResolve = !item.IsRefundApproved && (item.ComplaintStatus == "Pending" || item.ComplaintStatus == "InProgress");
+    <article class="card card-body mb-4"><div class="d-flex flex-wrap justify-content-between gap-2"><h2 class="h5">#@item.ComplaintId — Đơn @item.Order.OrderCode</h2><span class="badge @badge align-self-start">@item.ComplaintStatus</span></div>
+    <div class="row g-4"><div class="col-lg-6">
+    <p class="mb-1"><strong>@item.Customer.FullName</strong> — @item.Customer.Phone</p><p class="text-muted small">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm") · @item.ComplaintType · Đơn #@item.OrderId (@item.Order.OrderSource), @item.Order.TotalAmount.ToString("N0") ₫</p>
+    <p><strong>Đánh giá:</strong> @(item.Rating.HasValue ? $"{item.Rating}/5 ★" : "Chưa đánh giá")</p>
+    <p style="white-space: pre-wrap">@item.Content</p>
+    @if (!string.IsNullOrWhiteSpace(item.EvidenceImageUrl)) {
+        var safeEvidence = Url.IsLocalUrl(item.EvidenceImageUrl) || (Uri.TryCreate(item.EvidenceImageUrl, UriKind.Absolute, out var uri) && (uri.Scheme == "https" || uri.Scheme == "http"));
+        if (safeEvidence) {
+            <a href="@Url.Content(item.EvidenceImageUrl)" target="_blank" rel="noopener noreferrer"><img src="@Url.Content(item.EvidenceImageUrl)" alt="Ảnh minh chứng cho khiếu nại #@item.ComplaintId" class="img-thumbnail" style="max-height:220px;max-width:100%" loading="lazy" referrerpolicy="no-referrer" /></a>
+        } else { <p class="text-muted">Đường dẫn ảnh minh chứng không hợp lệ.</p> }
+    }
+    </div><div class="col-lg-6">
+    @if (canResolve) {
+        <form asp-action="ResolveComplaint" method="post" class="row g-3">
+        <input type="hidden" name="Resolution.ComplaintId" value="@item.ComplaintId" />
+        <div class="col-12"><label for="response-@item.ComplaintId" class="form-label">Phản hồi giải quyết</label><textarea id="response-@item.ComplaintId" name="Resolution.AdminResponse" class="form-control" rows="3" maxlength="1000" required>@edit.AdminResponse</textarea></div>
+        <div class="col-md-6"><label for="result-@item.ComplaintId" class="form-label">Kết quả</label><select id="result-@item.ComplaintId" name="Resolution.Status" class="form-select"><option value="Resolved" selected="@(edit.Status == "Resolved")">Resolved — Đã giải quyết</option><option value="Rejected" selected="@(edit.Status == "Rejected")">Rejected — Từ chối</option></select></div>
+        <div class="col-md-6"><label for="amount-@item.ComplaintId" class="form-label">Số tiền hoàn (VND)</label><input id="amount-@item.ComplaintId" name="Resolution.RefundAmount" type="number" min="0" max="@item.Order.TotalAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="0.01" value="@edit.RefundAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control" required /></div>
+        <div class="col-12"><div class="form-check"><input id="refund-@item.ComplaintId" type="checkbox" name="Resolution.IsRefundApproved" value="true" checked="@edit.IsRefundApproved" class="form-check-input" /><label for="refund-@item.ComplaintId" class="form-check-label">Phê duyệt hoàn tiền (Approve Refund)</label></div><input type="hidden" name="Resolution.IsRefundApproved" value="false" /></div>
+        <div class="col-12"><button class="btn btn-primary">Lưu xử lý khiếu nại #@item.ComplaintId</button><p class="small text-muted mt-2 mb-0">Sau khi lưu, kết quả xử lý được khóa để tránh hoàn tiền trùng.</p></div></form>
+    } else {
+        <h3 class="h6">Phản hồi của Admin</h3><p style="white-space: pre-wrap">@(item.AdminResponse ?? "Chưa có phản hồi")</p>
+        <p class="small text-muted">@(item.ResolvedByAdmin?.FullName ?? "—") · @(item.ResolvedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")</p>
+        <p><strong>Hoàn tiền:</strong> @(item.IsRefundApproved ? $"Đã duyệt — {item.RefundAmount:N2} ₫" : "Không duyệt")</p>
+    }
+    </div></div></article>
+}

@@ -184,3 +184,84 @@ public partial class AdminController
         return RedirectToAction(nameof(StaffSchedule));
     }
 }
+
+public partial class AdminController
+{
+    private async Task<AdminComplaintsViewModel> LoadComplaintsAsync(AdminResolveComplaintInput? input = null) => new()
+    {
+        Complaints = await _context.Complaints.AsNoTracking().Include(x => x.Order).Include(x => x.Customer)
+            .Include(x => x.ResolvedByAdmin).OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.ComplaintId).ToListAsync(),
+        Resolution = input ?? new()
+    };
+
+    [HttpGet]
+    public async Task<IActionResult> Complaints() => View(await LoadComplaintsAsync());
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResolveComplaint([Bind(Prefix = "Resolution")] AdminResolveComplaintInput input)
+    {
+        if (!await IsOperationsAdminAsync()) return Forbid();
+        if (input.IsRefundApproved && (input.Status != "Resolved" || input.RefundAmount <= 0))
+            ModelState.AddModelError("", "Hoàn tiền cần trạng thái Resolved và số tiền lớn hơn 0.");
+        if (!input.IsRefundApproved && input.RefundAmount != 0)
+            ModelState.AddModelError("", "Hãy chọn phê duyệt hoàn tiền hoặc để số tiền bằng 0.");
+        if (decimal.Round(input.RefundAmount, 2) != input.RefundAmount)
+            ModelState.AddModelError("", "Số tiền chỉ được có tối đa 2 chữ số thập phân.");
+        if (!ModelState.IsValid) return View("Complaints", await LoadComplaintsAsync(input));
+        var orderId = await _context.Complaints.Where(x => x.ComplaintId == input.ComplaintId).Select(x => (int?)x.OrderId).SingleOrDefaultAsync();
+        if (orderId == null) return NotFound();
+        try
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+            // Lock the order first to serialize refunds across ALL complaints for that order.
+            var order = await _context.Orders.FromSqlInterpolated($"SELECT * FROM Orders WITH (UPDLOCK, HOLDLOCK) WHERE OrderId = {orderId.Value}").SingleAsync();
+            var complaint = await _context.Complaints.FromSqlInterpolated($"SELECT * FROM Complaints WITH (UPDLOCK, HOLDLOCK) WHERE ComplaintId = {input.ComplaintId}").SingleOrDefaultAsync();
+            if (complaint == null) return NotFound();
+            if (complaint.IsRefundApproved || complaint.ComplaintStatus is "Resolved" or "Rejected")
+                ModelState.AddModelError("", "Khiếu nại đã được xử lý. Không thể xử lý hoặc hoàn tiền lần nữa.");
+            if (input.IsRefundApproved)
+            {
+                var paid = await _context.PaymentTransactions.Where(x => x.OrderId == order.OrderId && x.TransactionType == "Payment" && x.PaymentStatus == "Success").SumAsync(x => (decimal?)x.Amount) ?? 0;
+                var refunded = await _context.PaymentTransactions.Where(x => x.OrderId == order.OrderId && x.TransactionType == "Refund" && x.PaymentStatus == "Refunded").SumAsync(x => (decimal?)x.Amount) ?? 0;
+                var remaining = Math.Max(0, Math.Min(paid, order.TotalAmount) - refunded);
+                if (input.RefundAmount > remaining)
+                    ModelState.AddModelError("Resolution.RefundAmount", $"Số tiền vượt mức còn được hoàn ({remaining:N2} VND).");
+            }
+            if (ModelState.IsValid)
+            {
+                var now = DateTime.Now;
+                complaint.AdminResponse = input.AdminResponse.Trim();
+                complaint.ComplaintStatus = input.Status;
+                complaint.ResolvedByAdminId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                complaint.ResolvedAt = now;
+                complaint.IsRefundApproved = input.IsRefundApproved;
+                complaint.RefundAmount = input.IsRefundApproved ? input.RefundAmount : 0;
+                if (input.IsRefundApproved)
+                {
+                    // Project gateway simulation required by the context diagram; no external API is called.
+                    _context.PaymentTransactions.Add(new PaymentTransaction {
+                        OrderId = order.OrderId, PaymentMethod = "RefundGateway", TransactionType = "Refund",
+                        Amount = input.RefundAmount, GatewayTransactionRef = "REF-" + now.Ticks,
+                        PaymentStatus = "Refunded", CreatedAt = now
+                    });
+                }
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                TempData["OperationsSuccess"] = input.IsRefundApproved
+                    ? "Đã xử lý khiếu nại và ghi nhận giao dịch RefundGateway theo luồng mô phỏng của hệ thống."
+                    : "Đã lưu phản hồi xử lý khiếu nại.";
+                return RedirectToAction(nameof(Complaints));
+            }
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError("", "Chưa lưu được kết quả xử lý. Vui lòng tải lại dữ liệu và thử lại.");
+        }
+        catch (Microsoft.Data.SqlClient.SqlException)
+        {
+            ModelState.AddModelError("", "Giao dịch chưa hoàn tất do kết nối hoặc tranh chấp dữ liệu. Vui lòng thử lại.");
+        }
+        _context.ChangeTracker.Clear();
+        return View("Complaints", await LoadComplaintsAsync(input));
+    }
+}

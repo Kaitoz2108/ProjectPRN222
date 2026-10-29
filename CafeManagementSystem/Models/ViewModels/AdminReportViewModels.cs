@@ -68,3 +68,17 @@ public class AdminAttendanceInput
     [Required, RegularExpression("^(Present|Late|Absent|Leave)$")] public string Status { get; set; } = "Present";
     [StringLength(255)] public string? Note { get; set; }
 }
+
+public class AdminComplaintsViewModel
+{
+    public List<Complaint> Complaints { get; set; } = [];
+    public AdminResolveComplaintInput Resolution { get; set; } = new();
+}
+public class AdminResolveComplaintInput
+{
+    [Range(1, int.MaxValue)] public int ComplaintId { get; set; }
+    [Required, StringLength(1000)] public string AdminResponse { get; set; } = "";
+    [Required, RegularExpression("^(Resolved|Rejected)$")] public string Status { get; set; } = "Resolved";
+    public bool IsRefundApproved { get; set; }
+    [Range(typeof(decimal), "0", "9999999999999999.99")] public decimal RefundAmount { get; set; }
+}
