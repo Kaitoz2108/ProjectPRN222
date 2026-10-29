@@ -82,8 +82,8 @@ public partial class AdminController
     public async Task<IActionResult> CreateStaff([Bind(Prefix = "NewStaff")] AdminCreateStaffInput input)
     {
         if (!await IsOperationsAdminAsync()) return Forbid();
-        input.Phone = input.Phone.Trim();
-        input.FullName = input.FullName.Trim();
+        input.Phone = input.Phone?.Trim() ?? "";
+        input.FullName = input.FullName?.Trim() ?? "";
         input.Email = string.IsNullOrWhiteSpace(input.Email) ? null : input.Email.Trim();
         var role = await _context.Roles.SingleOrDefaultAsync(x => x.RoleName == input.Role && OperationsStaffRoles.Contains(x.RoleName));
         if (role == null) ModelState.AddModelError("NewStaff.Role", "Vai trò nhân viên không hợp lệ hoặc chưa được cấu hình.");
@@ -217,7 +217,7 @@ public partial class AdminController
             var order = await _context.Orders.FromSqlInterpolated($"SELECT * FROM Orders WITH (UPDLOCK, HOLDLOCK) WHERE OrderId = {orderId.Value}").SingleAsync();
             var complaint = await _context.Complaints.FromSqlInterpolated($"SELECT * FROM Complaints WITH (UPDLOCK, HOLDLOCK) WHERE ComplaintId = {input.ComplaintId}").SingleOrDefaultAsync();
             if (complaint == null) return NotFound();
-            if (complaint.IsRefundApproved || complaint.ComplaintStatus is "Resolved" or "Rejected")
+            if (complaint.IsRefundApproved || complaint.ComplaintStatus is not ("Pending" or "InProgress"))
                 ModelState.AddModelError("", "Khiếu nại đã được xử lý. Không thể xử lý hoặc hoàn tiền lần nữa.");
             if (input.IsRefundApproved)
             {
