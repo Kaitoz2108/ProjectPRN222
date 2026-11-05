@@ -31,7 +31,7 @@ CREATE TABLE Users (
     RoleId INT NOT NULL,
     FullName NVARCHAR(100) NOT NULL,
     Phone NVARCHAR(20) NOT NULL UNIQUE,
-    Email NVARCHAR(100) NULL UNIQUE,
+    Email NVARCHAR(100) NULL,
     PasswordHash NVARCHAR(255) NOT NULL,
     Address NVARCHAR(255) NULL,
     LoyaltyPoints INT NOT NULL DEFAULT 0, -- Điểm tích lũy cho Customer
@@ -39,6 +39,9 @@ CREATE TABLE Users (
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES Roles(RoleId)
 );
+CREATE UNIQUE NONCLUSTERED INDEX UQ_Users_Email ON Users(Email) WHERE Email IS NOT NULL;
+GO
+
 
 CREATE TABLE WorkSchedules (
     ScheduleId INT IDENTITY(1,1) PRIMARY KEY,
@@ -310,14 +313,34 @@ INSERT INTO Ingredients (IngredientName, Unit, StockQuantity, MinStockLevel) VAL
 (N'Syrup Đào', N'ml', 3000, 500),
 (N'Đào miếng ngâm', N'miếng', 120, 20);
 
--- 6. Thêm Công thức pha chế (ProductRecipes) cho Bạc Xỉu Size M (VariantId = 2) và Trà Đào Size M (VariantId = 6)
+-- 6. Thêm Công thức pha chế (ProductRecipes) đầy đủ cho tất cả các Variant
 INSERT INTO ProductRecipes (VariantId, IngredientId, QuantityRequired, PreparationGuide) VALUES
+-- Bạc Xỉu Size S (VariantId = 1)
+(1, 1, 14, N'Chiết xuất 14g cà phê lấy 25ml cốt Espresso'),
+(1, 2, 30, N'Đong 30ml sữa đặc vào đáy ly'),
+(1, 3, 80, N'Đánh bọt 80ml sữa tươi đổ lên trên đá, sau đó rót Espresso lên mặt'),
+-- Bạc Xỉu Size M (VariantId = 2)
 (2, 1, 18, N'Chiết xuất 18g cà phê lấy 30ml cốt Espresso'),
 (2, 2, 40, N'Đong 40ml sữa đặc vào đáy ly'),
 (2, 3, 100, N'Đánh bọt 100ml sữa tươi đổ lên trên đá, sau đó rót Espresso lên mặt'),
+-- Bạc Xỉu Size L (VariantId = 3)
+(3, 1, 22, N'Chiết xuất 22g cà phê lấy 40ml cốt Espresso'),
+(3, 2, 50, N'Đong 50ml sữa đặc vào đáy ly'),
+(3, 3, 130, N'Đánh bọt 130ml sữa tươi đổ lên trên đá, sau đó rót Espresso lên mặt'),
+-- Cà Phê Sữa Đá Size M (VariantId = 4)
+(4, 1, 20, N'Chiết xuất 20g cà phê Robusta lấy 40ml cốt đậm đặc'),
+(4, 2, 35, N'Khuấy đều 35ml sữa đặc cùng cốt cà phê nóng, thêm đá'),
+-- Cà Phê Sữa Đá Size L (VariantId = 5)
+(5, 1, 25, N'Chiết xuất 25g cà phê Robusta lấy 50ml cốt đậm đặc'),
+(5, 2, 45, N'Khuấy đều 45ml sữa đặc cùng cốt cà phê nóng, thêm đá'),
+-- Trà Đào Cam Sả Size M (VariantId = 6)
 (6, 4, 150, N'Lắc đều 150ml cốt trà đen với đá'),
 (6, 5, 30, N'Pha 30ml Syrup Đào cùng 10ml nước đường'),
-(6, 6, 3, N'Trang trí 3 miếng đào ngâm và 1 lát cam sả lên mặt ly');
+(6, 6, 3, N'Trang trí 3 miếng đào ngâm và 1 lát cam sả lên mặt ly'),
+-- Trà Đào Cam Sả Size L (VariantId = 7)
+(7, 4, 200, N'Lắc đều 200ml cốt trà đen với đá'),
+(7, 5, 40, N'Pha 40ml Syrup Đào cùng 15ml nước đường'),
+(7, 6, 4, N'Trang trí 4 miếng đào ngâm và 1 lát cam sả lên mặt ly');
 
 -- 7. Mở sẵn 1 Ca làm việc mẫu cho Cashier (UserId = 2)
 INSERT INTO CashierShifts (CashierId, OpeningCash, IsOpeningCashConfirmed, SystemCashSales, ShiftStatus, HandoverNotes)

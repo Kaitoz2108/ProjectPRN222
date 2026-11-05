@@ -1,0 +1,112 @@
+@model CafeManagementSystem.Models.ViewModels.MyOrdersViewModel
+@{
+    ViewData["Title"] = "Đơn Hàng Của Tôi";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-clock-history text-danger me-2"></i>Lịch Sử Đơn Hàng Của Bạn</h3>
+            <p class="text-muted mb-0">Theo dõi tiến trình pha chế, giao hàng và hóa đơn các đơn đã đặt</p>
+        </div>
+        <a asp-action="Menu" class="btn btn-danger rounded-pill px-4">
+            <i class="bi bi-cup-straw me-1"></i>Đặt thêm đồ uống
+        </a>
+    </div>
+
+    @if (!Model.Orders.Any())
+    {
+        <div class="card shadow-sm border-0 rounded-4 text-center py-5">
+            <div class="card-body">
+                <i class="bi bi-inbox text-muted" style="font-size: 5rem;"></i>
+                <h4 class="fw-bold text-secondary mt-3">Bạn chưa có đơn hàng nào</h4>
+                <p class="text-muted">Hãy đặt những ly cà phê hoặc trà đầu tiên để thưởng thức nhé!</p>
+                <a asp-action="Menu" class="btn btn-danger rounded-pill px-4 mt-2">Xem thực đơn ngay</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var ord in Model.Orders)
+            {
+                var payment = ord.PaymentTransactions.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
+                var delivery = ord.Delivery;
+                string statusBadgeClass = ord.PreparationStatus switch
+                {
+                    "Ready" => "bg-success",
+                    "Preparing" => "bg-warning text-dark",
+                    "Completed" => "bg-primary",
+                    "Cancelled" => "bg-danger",
+                    _ => "bg-secondary"
+                };
+
+                <div class="col-12">
+                    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
+                            <div>
+                                <span class="fw-bold fs-5 text-primary me-2">#@ord.OrderCode</span>
+                                <span class="badge @statusBadgeClass">@ord.PreparationStatus</span>
+                                @if (delivery != null)
+                                {
+                                    <span class="badge bg-info text-dark ms-1">
+                                        <i class="bi bi-bicycle me-1"></i>Giao: @delivery.DeliveryStatus
+                                    </span>
+                                }
+                            </div>
+                            <div class="small text-muted">
+                                <i class="bi bi-calendar3 me-1"></i>@ord.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        </div>
+
+                        <div class="card-body p-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-7 mb-2 mb-md-0">
+                                    <div class="fw-semibold mb-1">Chi tiết đồ uống:</div>
+                                    <ul class="list-unstyled mb-0 small text-secondary">
+                                        @foreach (var item in ord.OrderItems)
+                                        {
+                                            <li>
+                                                <i class="bi bi-dot text-danger"></i>
+                                                <strong>@item.Quantity x</strong> @(item.Variant?.Product?.ProductName ?? "Sản phẩm")
+                                                (Size @(item.Variant?.SizeName ?? ""))
+                                                <span class="text-muted">- @((item.UnitPrice * item.Quantity).ToString("N0")) đ</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                                <div class="col-md-5 text-md-end">
+                                    <div class="small text-muted mb-1">
+                                        Thanh toán: <strong>@payment?.PaymentMethod</strong>
+                                        <span class="badge @(payment?.PaymentStatus == "Success" ? "bg-success" : "bg-warning text-dark") ms-1">
+                                            @(payment?.PaymentStatus == "Success" ? "Đã trả" : "Chờ thu")
+                                        </span>
+                                    </div>
+                                    <div class="fs-4 fw-bold text-danger mb-2">
+                                        @ord.TotalAmount.ToString("N0") đ
+                                    </div>
+                                    <div class="d-flex justify-content-md-end gap-2 flex-wrap">
+                                        @if (payment?.PaymentStatus != "Success" && payment?.PaymentMethod == "Transfer")
+                                        {
+                                            <a asp-controller="PaymentGateway" asp-action="Pay" asp-route-orderId="@ord.OrderId"
+                                               class="btn btn-primary btn-sm rounded-pill">
+                                                <i class="bi bi-qr-code me-1"></i>Thanh toán QR
+                                            </a>
+                                        }
+                                        <a asp-action="Bill" asp-route-id="@ord.OrderId" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                            <i class="bi bi-receipt me-1"></i>Hóa đơn
+                                        </a>
+                                        <a asp-action="Complaints" class="btn btn-outline-danger btn-sm rounded-pill">
+                                            <i class="bi bi-chat-dots me-1"></i>Khiếu nại
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+

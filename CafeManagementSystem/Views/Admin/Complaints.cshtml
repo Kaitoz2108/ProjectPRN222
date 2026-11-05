@@ -1,7 +1,7 @@
 @model AdminComplaintsViewModel
 @{ ViewData["Title"] = "Khiếu nại & hoàn tiền"; }
 <div class="d-flex flex-wrap justify-content-between gap-2 mb-4"><h1 class="h3">Khiếu nại & hoàn tiền</h1><nav><a asp-action="Dashboard" class="btn btn-outline-primary">Dashboard</a> <a asp-action="StaffSchedule" class="btn btn-outline-primary">Nhân sự & phân ca</a></nav></div>
-@if (TempData["OperationsSuccess"] is string success) { <div class="alert alert-success" role="status">@success</div> }
+
 <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
 <p class="text-muted">@Model.Complaints.Count phản hồi. Hoàn tiền được ghi nhận qua giao dịch RefundGateway mô phỏng; chỉ duyệt tối đa phần đã thanh toán còn chưa hoàn.</p>
 @if (Model.Complaints.Count == 0) { <div class="alert alert-info">Chưa có khiếu nại hoặc phản hồi.</div> }

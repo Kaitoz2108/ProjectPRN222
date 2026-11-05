@@ -156,31 +156,50 @@ public class DeliveryController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        if (newStatus == "Delivered" && delivery.CodAmount > 0)
+        if (newStatus == "Delivered")
         {
-            var openShift = await _context.CashierShifts
-                .Where(shift => shift.ShiftStatus == "Open")
-                .OrderByDescending(shift => shift.StartTime)
-                .FirstOrDefaultAsync();
+            delivery.DeliveredAt = DateTime.Now;
+            delivery.Order.CompletedAt = DateTime.Now;
 
-            if (openShift == null)
+            if (delivery.CodAmount > 0)
             {
-                await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = "Không tìm thấy ca thu ngân đang mở để bàn giao tiền COD.";
-                return RedirectToAction(nameof(Index));
-            }
+                delivery.IsCodCollected = true;
 
-            delivery.IsCodCollected = true;
-            delivery.HandedCodToShiftId = openShift.ShiftId;
-            openShift.SystemCashSales += delivery.CodAmount;
+                // Ghi nhận PaymentTransaction thành công cho COD để đưa vào doanh thu và đối soát hoàn tiền (Issue 8)
+                var existingCodPayment = await _context.PaymentTransactions
+                    .FirstOrDefaultAsync(p => p.OrderId == delivery.OrderId && p.PaymentMethod == "COD" && p.PaymentStatus == "Success");
+
+                if (existingCodPayment == null)
+                {
+                    var codPayment = new PaymentTransaction
+                    {
+                        OrderId = delivery.OrderId,
+                        PaymentMethod = "COD",
+                        TransactionType = "Payment",
+                        Amount = delivery.CodAmount,
+                        PaymentStatus = "Success",
+                        GatewayTransactionRef = $"COD-DELIVERY-{delivery.DeliveryId}",
+                        CreatedAt = DateTime.Now
+                    };
+                    _context.PaymentTransactions.Add(codPayment);
+                }
+
+                // Gán ca thu ngân đang mở (nếu có) để bàn giao tiền mặt
+                var openShift = await _context.CashierShifts
+                    .Where(shift => shift.ShiftStatus == "Open")
+                    .OrderByDescending(shift => shift.StartTime)
+                    .FirstOrDefaultAsync();
+
+                if (openShift != null)
+                {
+                    delivery.HandedCodToShiftId = openShift.ShiftId;
+                    openShift.SystemCashSales += delivery.CodAmount;
+                }
+            }
         }
 
         delivery.DeliveryStatus = newStatus;
         delivery.ProblemNote = newStatus == "Failed" ? problemNote : delivery.ProblemNote;
-        if (newStatus == "Delivered")
-        {
-            delivery.DeliveredAt = DateTime.Now;
-        }
 
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();

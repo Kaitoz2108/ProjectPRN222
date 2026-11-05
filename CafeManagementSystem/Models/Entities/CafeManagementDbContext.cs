@@ -348,7 +348,7 @@ public partial class CafeManagementDbContext : DbContext
 
             entity.HasIndex(e => e.Phone, "UQ__Users__5C7E359E922831CF").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534647CBCA7").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534647CBCA7").IsUnique().HasFilter("[Email] IS NOT NULL");
 
             entity.Property(e => e.Address).HasMaxLength(255);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysdatetime())");

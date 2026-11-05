@@ -1,0 +1,63 @@
+@model CafeManagementSystem.Models.Entities.Order
+@{
+    ViewData["Title"] = "Cổng Thanh Toán Trực Tuyến";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-qr-code-scan me-2"></i>CỔNG THANH TOÁN MÔ PHỎNG (PAYMENT GATEWAY)</h5>
+                    <small class="opacity-75">Hệ thống chấp nhận VietQR / Chuyển khoản ngân hàng 24/7</small>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <p class="text-muted mb-2">Đơn hàng: <strong class="text-primary">#@Model.OrderCode</strong></p>
+                    <h2 class="fw-bold text-danger mb-3">@Model.TotalAmount.ToString("N0") VNĐ</h2>
+
+                    <!-- Mã QR giả lập thanh toán -->
+                    <div class="p-3 bg-light rounded-3 d-inline-block shadow-sm mb-3 border">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://cafecms.vn/pay/@Model.OrderCode" 
+                             alt="QR Code" class="img-fluid rounded" style="width: 180px; height: 180px;" />
+                        <div class="small text-muted mt-2"><i class="bi bi-camera me-1"></i>Quét mã QR để thanh toán</div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-3 text-start mb-4 border">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Ngân hàng thụ hưởng:</span>
+                            <span class="fw-bold">MB Bank</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Số tài khoản:</span>
+                            <span class="fw-bold text-primary">888899990000</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Chủ tài khoản:</span>
+                            <span class="fw-bold">CONG TY CAFE CMS VN</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Nội dung chuyển khoản:</span>
+                            <span class="fw-bold text-danger">PAY @Model.OrderCode</span>
+                        </div>
+                    </div>
+
+                    <form asp-controller="PaymentGateway" asp-action="ConfirmPayment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm mb-2">
+                            <i class="bi bi-check-circle me-2"></i>Tôi đã chuyển khoản thành công
+                        </button>
+                    </form>
+
+                    <a asp-controller="Customer" asp-action="Bill" asp-route-id="@Model.OrderId" class="btn btn-outline-secondary w-100 rounded-pill">
+                        Để sau (Xem hóa đơn tạm)
+                    </a>
+                </div>
+                <div class="card-footer bg-light text-center small text-muted py-2">
+                    <i class="bi bi-shield-lock me-1"></i>Giao dịch được bảo mật bởi Sandbox Payment Simulator
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -53,14 +53,24 @@ public class CashierController : Controller
 
         if (currentShift != null)
         {
-            // Tải danh sách đơn hàng tiền mặt trong ca hiện tại
+            // Tải danh sách đơn hàng tiền mặt trong ca hiện tại (có ThenInclude để tránh NullReferenceException - Issue 4)
             viewModel.ShiftCashOrders = await _context.Orders
                 .Include(o => o.Customer)
                 .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Variant)
+                        .ThenInclude(v => v.Product)
                 .Include(o => o.PaymentTransactions)
                 .Where(o => o.CashierShiftId == currentShift.ShiftId &&
                             o.PaymentTransactions.Any(p => p.PaymentMethod == "Cash" && p.PaymentStatus == "Success"))
                 .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            // Tải danh sách đơn giao COD đã bàn giao vào ca này (Issue 8)
+            viewModel.ShiftCodDeliveries = await _context.Deliveries
+                .Include(d => d.Order)
+                .Include(d => d.DeliveryStaff)
+                .Where(d => d.HandedCodToShiftId == currentShift.ShiftId && d.IsCodCollected)
+                .OrderByDescending(d => d.DeliveredAt ?? d.AssignedAt)
                 .ToListAsync();
         }
 
@@ -224,7 +234,7 @@ public class CashierController : Controller
         {
             customer = await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Phone == customerPhone);
+                .FirstOrDefaultAsync(u => u.Phone == customerPhone && u.Role.RoleName == "Customer" && u.IsActive);
         }
 
         // Tải giỏ hàng từ Session
@@ -259,7 +269,8 @@ public class CashierController : Controller
 
         var variant = await _context.ProductVariants
             .Include(v => v.Product)
-            .FirstOrDefaultAsync(v => v.VariantId == variantId && v.IsActive);
+                .ThenInclude(p => p.Category)
+            .FirstOrDefaultAsync(v => v.VariantId == variantId && v.IsActive && v.Product.IsAvailable && v.Product.Category.IsActive);
 
         if (variant == null)
         {
@@ -336,11 +347,12 @@ public class CashierController : Controller
 
         var trimmedPhone = searchPhone.Trim();
         var customer = await _context.Users
-            .FirstOrDefaultAsync(u => u.Phone == trimmedPhone);
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Phone == trimmedPhone && u.Role.RoleName == "Customer" && u.IsActive);
 
         if (customer == null)
         {
-            TempData["WarningMessage"] = $"Không tìm thấy khách hàng với SĐT {trimmedPhone}. Bạn có thể tạo nhanh khách hàng bên dưới.";
+            TempData["WarningMessage"] = $"Không tìm thấy khách hàng thành viên hợp lệ với SĐT {trimmedPhone}. Bạn có thể tạo nhanh khách hàng bên dưới.";
             HttpContext.Session.Remove(PosCustomerPhoneKey);
         }
         else
@@ -366,6 +378,7 @@ public class CashierController : Controller
     public async Task<IActionResult> CreateCustomer(string fullName, string phone, string? email, string? address, int? categoryId)
     {
         var trimmedPhone = phone?.Trim();
+        var trimmedEmail = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
 
         if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(trimmedPhone))
         {
@@ -377,6 +390,12 @@ public class CashierController : Controller
         {
             HttpContext.Session.SetString(PosCustomerPhoneKey, trimmedPhone);
             TempData["WarningMessage"] = $"SĐT {trimmedPhone} đã tồn tại trong hệ thống. Đã tự động chọn khách hàng này.";
+            return RedirectToAction(nameof(POS), new { categoryId });
+        }
+
+        if (trimmedEmail != null && await _context.Users.AnyAsync(u => u.Email == trimmedEmail))
+        {
+            TempData["ErrorMessage"] = $"Email '{trimmedEmail}' đã tồn tại trong hệ thống. Vui lòng dùng email khác.";
             return RedirectToAction(nameof(POS), new { categoryId });
         }
 
@@ -392,7 +411,7 @@ public class CashierController : Controller
             RoleId = customerRole.RoleId,
             FullName = fullName.Trim(),
             Phone = trimmedPhone,
-            Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim(),
+            Email = trimmedEmail,
             Address = string.IsNullOrWhiteSpace(address) ? null : address.Trim(),
             PasswordHash = "123456",
             LoyaltyPoints = 0,
@@ -400,8 +419,16 @@ public class CashierController : Controller
             CreatedAt = DateTime.Now
         };
 
-        _context.Users.Add(newCustomer);
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.Users.Add(newCustomer);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            TempData["ErrorMessage"] = "Không thể tạo tài khoản khách hàng do xung đột số điện thoại hoặc email. Vui lòng kiểm tra lại.";
+            return RedirectToAction(nameof(POS), new { categoryId });
+        }
 
         HttpContext.Session.SetString(PosCustomerPhoneKey, trimmedPhone);
         TempData["SuccessMessage"] = $"Tạo nhanh khách hàng {newCustomer.FullName} thành công!";
@@ -414,15 +441,6 @@ public class CashierController : Controller
     {
         var cashierId = GetCurrentUserId();
 
-        var currentShift = await _context.CashierShifts
-            .FirstOrDefaultAsync(s => s.CashierId == cashierId && s.ShiftStatus == "Open");
-
-        if (currentShift == null)
-        {
-            TempData["ErrorMessage"] = "Bạn chưa mở ca làm việc! Không thể thanh toán.";
-            return RedirectToAction(nameof(Shift));
-        }
-
         var cart = GetCart();
         if (!cart.Any())
         {
@@ -430,106 +448,156 @@ public class CashierController : Controller
             return RedirectToAction(nameof(POS));
         }
 
-        var subTotal = cart.Sum(c => c.LineTotal);
-
-        // Khách hàng
-        var customerPhone = HttpContext.Session.GetString(PosCustomerPhoneKey);
-        User? customer = null;
-        if (!string.IsNullOrWhiteSpace(customerPhone))
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            customer = await _context.Users.FirstOrDefaultAsync(u => u.Phone == customerPhone);
-        }
+            var currentShift = await _context.CashierShifts
+                .FirstOrDefaultAsync(s => s.CashierId == cashierId && s.ShiftStatus == "Open");
 
-        // Tính điểm tích lũy dùng: 1 điểm = 1.000đ
-        int maxPoints = customer != null ? Math.Min(customer.LoyaltyPoints, (int)(subTotal / 1000m)) : 0;
-        if (pointsUsed < 0) pointsUsed = 0;
-        if (pointsUsed > maxPoints) pointsUsed = maxPoints;
-
-        decimal discountAmount = pointsUsed * 1000m;
-        decimal totalAmount = Math.Max(0, subTotal - discountAmount);
-
-        // Điểm thưởng mới tích lũy: TotalAmount / 10000
-        int earnedPoints = (int)(totalAmount / 10000m);
-
-        if (string.IsNullOrWhiteSpace(paymentMethod))
-        {
-            paymentMethod = "Cash";
-        }
-
-        var orderCode = "ORD" + DateTime.Now.ToString("yyyyMMddHHmmss");
-
-        // 1. Tạo bản ghi Orders
-        var order = new Order
-        {
-            OrderCode = orderCode,
-            CustomerId = customer?.UserId,
-            CashierId = cashierId,
-            CashierShiftId = currentShift.ShiftId,
-            BaristaId = null,
-            OrderSource = "Counter",
-            SubTotal = subTotal,
-            DiscountAmount = discountAmount,
-            ShippingFee = 0,
-            TotalAmount = totalAmount,
-            LoyaltyPointsUsed = pointsUsed,
-            LoyaltyPointsEarned = earnedPoints,
-            PreparationStatus = "Pending",
-            OrderNote = orderNote?.Trim(),
-            CreatedAt = DateTime.Now
-        };
-
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
-
-        // 2. Tạo OrderItems
-        foreach (var item in cart)
-        {
-            var orderItem = new OrderItem
+            if (currentShift == null)
             {
-                OrderId = order.OrderId,
-                VariantId = item.VariantId,
-                Quantity = item.Quantity,
-                UnitPrice = item.UnitPrice,
-                SugarLevel = item.SugarLevel,
-                IceLevel = item.IceLevel,
-                ItemNote = item.ItemNote
+                await transaction.RollbackAsync();
+                TempData["ErrorMessage"] = "Bạn chưa mở ca làm việc! Không thể thanh toán.";
+                return RedirectToAction(nameof(Shift));
+            }
+
+            // 1. Kiểm tra lại điều kiện phục vụ và giá mới nhất từ Database (Issue 14)
+            var variantIds = cart.Select(c => c.VariantId).Distinct().ToList();
+            var validVariants = await _context.ProductVariants
+                .Include(v => v.Product)
+                    .ThenInclude(p => p.Category)
+                .Where(v => variantIds.Contains(v.VariantId) && v.IsActive && v.Product.IsAvailable && v.Product.Category.IsActive)
+                .ToDictionaryAsync(v => v.VariantId);
+
+            if (validVariants.Count != variantIds.Count)
+            {
+                await transaction.RollbackAsync();
+                TempData["ErrorMessage"] = "Một số đồ uống trong đơn đã ngừng phục vụ hoặc danh mục bị khóa. Vui lòng kiểm tra lại đơn!";
+                return RedirectToAction(nameof(POS));
+            }
+
+            // Cập nhật lại giá từ DB và tính SubTotal
+            decimal subTotal = 0;
+            foreach (var item in cart)
+            {
+                var v = validVariants[item.VariantId];
+                item.UnitPrice = v.Price;
+                item.ProductName = v.Product.ProductName;
+                item.SizeName = v.SizeName;
+                subTotal += item.UnitPrice * item.Quantity;
+            }
+
+            // 2. Tra cứu khách hàng hợp lệ (Role Customer & IsActive - Issue 15)
+            var customerPhone = HttpContext.Session.GetString(PosCustomerPhoneKey);
+            User? customer = null;
+            if (!string.IsNullOrWhiteSpace(customerPhone))
+            {
+                customer = await _context.Users
+                    .Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.Phone == customerPhone && u.Role.RoleName == "Customer" && u.IsActive);
+            }
+
+            // Tính điểm tích lũy dùng: 1 điểm = 1.000đ
+            int maxPoints = customer != null ? Math.Min(customer.LoyaltyPoints, (int)(subTotal / 1000m)) : 0;
+            if (pointsUsed < 0) pointsUsed = 0;
+            if (pointsUsed > maxPoints) pointsUsed = maxPoints;
+
+            decimal discountAmount = pointsUsed * 1000m;
+            decimal totalAmount = Math.Max(0, subTotal - discountAmount);
+
+            // Điểm thưởng mới tích lũy: TotalAmount / 10000
+            int earnedPoints = (int)(totalAmount / 10000m);
+
+            if (string.IsNullOrWhiteSpace(paymentMethod))
+            {
+                paymentMethod = "Cash";
+            }
+
+            // Mã đơn chống xung đột trong cùng một giây (Issue 10)
+            var orderCode = $"ORD{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
+
+            var sanitizedOrderNote = orderNote?.Trim();
+            if (sanitizedOrderNote?.Length > 300) sanitizedOrderNote = sanitizedOrderNote[..300];
+
+            // 3. Tạo bản ghi Orders và OrderItems trong cùng 1 lần lưu (Issue 9)
+            var order = new Order
+            {
+                OrderCode = orderCode,
+                CustomerId = customer?.UserId,
+                CashierId = cashierId,
+                CashierShiftId = currentShift.ShiftId,
+                BaristaId = null,
+                OrderSource = "Counter",
+                SubTotal = subTotal,
+                DiscountAmount = discountAmount,
+                ShippingFee = 0,
+                TotalAmount = totalAmount,
+                LoyaltyPointsUsed = pointsUsed,
+                LoyaltyPointsEarned = earnedPoints,
+                PreparationStatus = "Pending",
+                OrderNote = sanitizedOrderNote,
+                CreatedAt = DateTime.Now
             };
-            _context.OrderItems.Add(orderItem);
+
+            foreach (var item in cart)
+            {
+                var itemNote = item.ItemNote?.Trim();
+                if (itemNote?.Length > 255) itemNote = itemNote[..255];
+
+                order.OrderItems.Add(new OrderItem
+                {
+                    VariantId = item.VariantId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    SugarLevel = item.SugarLevel,
+                    IceLevel = item.IceLevel,
+                    ItemNote = itemNote
+                });
+            }
+
+            // 4. Tạo bản ghi PaymentTransactions
+            var payment = new PaymentTransaction
+            {
+                Order = order,
+                PaymentMethod = paymentMethod,
+                TransactionType = "Payment",
+                Amount = totalAmount,
+                PaymentStatus = "Success",
+                GatewayTransactionRef = paymentMethod == "Cash" ? "POS-CASH" : $"POS-TRANSFER-{orderCode}",
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Orders.Add(order);
+            _context.PaymentTransactions.Add(payment);
+
+            // 5. Nếu thanh toán bằng "Cash", cộng TotalAmount vào CashierShifts.SystemCashSales
+            if (paymentMethod == "Cash")
+            {
+                currentShift.SystemCashSales += totalAmount;
+            }
+
+            // 6. Cập nhật LoyaltyPoints cho Khách hàng
+            if (customer != null)
+            {
+                customer.LoyaltyPoints = customer.LoyaltyPoints - pointsUsed + earnedPoints;
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            // 7. Dọn dẹp giỏ hàng POS và khách hàng trong Session
+            SaveCart(new List<PosCartItem>());
+            HttpContext.Session.Remove(PosCustomerPhoneKey);
+
+            TempData["SuccessMessage"] = $"Tạo đơn #{order.OrderCode} thành công! Thanh toán: {(paymentMethod == "Cash" ? "Tiền mặt" : "Chuyển khoản")}. Tổng tiền: {totalAmount:N0} đ.";
+            return RedirectToAction(nameof(Bill), new { id = order.OrderId });
         }
-
-        // 3. Tạo bản ghi PaymentTransactions (PaymentStatus = "Success")
-        var payment = new PaymentTransaction
+        catch (Exception ex)
         {
-            OrderId = order.OrderId,
-            PaymentMethod = paymentMethod,
-            TransactionType = "Payment",
-            Amount = totalAmount,
-            PaymentStatus = "Success",
-            GatewayTransactionRef = paymentMethod == "Cash" ? "POS-CASH" : "POS-TRANSFER-" + order.OrderId,
-            CreatedAt = DateTime.Now
-        };
-        _context.PaymentTransactions.Add(payment);
-
-        // 4. Nếu thanh toán bằng "Cash", cộng TotalAmount vào CashierShifts.SystemCashSales
-        if (paymentMethod == "Cash")
-        {
-            currentShift.SystemCashSales += totalAmount;
+            await transaction.RollbackAsync();
+            TempData["ErrorMessage"] = $"Có lỗi xảy ra khi thanh toán đơn hàng: {ex.Message}";
+            return RedirectToAction(nameof(POS));
         }
-
-        // 5. Cập nhật LoyaltyPoints cho Khách hàng
-        if (customer != null)
-        {
-            customer.LoyaltyPoints = customer.LoyaltyPoints - pointsUsed + earnedPoints;
-        }
-
-        await _context.SaveChangesAsync();
-
-        // 6. Dọn dẹp giỏ hàng POS và khách hàng trong Session
-        SaveCart(new List<PosCartItem>());
-        HttpContext.Session.Remove(PosCustomerPhoneKey);
-
-        TempData["SuccessMessage"] = $"Tạo đơn #{order.OrderCode} thành công! Thanh toán: {(paymentMethod == "Cash" ? "Tiền mặt" : "Chuyển khoản")}. Tổng tiền: {totalAmount:N0} đ.";
-        return RedirectToAction(nameof(Bill), new { id = order.OrderId });
     }
 
     // =========================================================================

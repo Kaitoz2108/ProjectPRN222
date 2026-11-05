@@ -1,7 +1,7 @@
 @model AdminStaffScheduleViewModel
 @{ ViewData["Title"] = "Nhân sự, phân ca & chấm công"; }
 <div class="d-flex flex-wrap justify-content-between gap-2 mb-4"><h1 class="h3">Nhân sự, phân ca & chấm công</h1><nav><a asp-action="Dashboard" class="btn btn-outline-primary">Dashboard</a> <a asp-action="Complaints" class="btn btn-outline-primary">Khiếu nại</a></nav></div>
-@if (TempData["OperationsSuccess"] is string success) { <div class="alert alert-success" role="status">@success</div> }
+
 <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
 <div class="row g-4 mb-4"><section class="col-lg-6"><div class="card card-body h-100"><h2 class="h5">Thêm tài khoản nhân viên</h2>
 <form asp-action="CreateStaff" method="post" class="row g-3">

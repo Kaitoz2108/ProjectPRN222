@@ -1,0 +1,173 @@
+@model CafeManagementSystem.Models.ViewModels.CustomerComplaintViewModel
+@{
+    ViewData["Title"] = "Khiếu Nại & Góp Ý";
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-chat-heart text-danger me-2"></i>Khiếu Nại & Góp Ý Dịch Vụ</h3>
+        <p class="text-muted mb-0">Chúng tôi luôn lắng nghe ý kiến phản hồi của bạn để nâng cao chất lượng đồ uống và dịch vụ</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Cột trái: Form gửi khiếu nại / góp ý mới -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2"></i>Gửi Phản Hồi Mới</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (!Model.EligibleOrders.Any())
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-info-circle fs-2 d-block mb-2"></i>
+                            Bạn chưa có đơn hàng nào để gửi khiếu nại.
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="SubmitComplaint" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label asp-for="Form.OrderId" class="form-label fw-semibold"></label>
+                                <select asp-for="Form.OrderId" class="form-select" required>
+                                    <option value="">-- Chọn đơn hàng --</option>
+                                    @foreach (var o in Model.EligibleOrders)
+                                    {
+                                        <option value="@o.OrderId">#@o.OrderCode (@o.CreatedAt.ToString("dd/MM/yyyy HH:mm") - @o.TotalAmount.ToString("N0") đ)</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Form.OrderId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Form.ComplaintType" class="form-label fw-semibold"></label>
+                                <select asp-for="Form.ComplaintType" class="form-select" required>
+                                    <option value="Chất lượng đồ uống">Chất lượng đồ uống</option>
+                                    <option value="Giao hàng chậm">Giao hàng chậm</option>
+                                    <option value="Sai món / Thiếu món">Sai món / Thiếu món</option>
+                                    <option value="Thái độ phục vụ">Thái độ phục vụ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Form.Rating" class="form-label fw-semibold"></label>
+                                <select asp-for="Form.Rating" class="form-select">
+                                    <option value="5">⭐⭐⭐⭐⭐ (5 sao - Rất tốt)</option>
+                                    <option value="4">⭐⭐⭐⭐ (4 sao - Hài lòng)</option>
+                                    <option value="3">⭐⭐⭐ (3 sao - Bình thường)</option>
+                                    <option value="2">⭐⭐ (2 sao - Không hài lòng)</option>
+                                    <option value="1">⭐ (1 sao - Rất tệ)</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Form.Content" class="form-label fw-semibold"></label>
+                                <textarea asp-for="Form.Content" class="form-control" rows="3" required placeholder="Mô tả cụ thể vấn đề bạn gặp phải..."></textarea>
+                                <span asp-validation-for="Form.Content" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Form.EvidenceImageUrl" class="form-label fw-semibold"></label>
+                                <input asp-for="Form.EvidenceImageUrl" class="form-control" placeholder="https://... (Link ảnh ly nước/sự cố nếu có)" />
+                                <small class="text-muted">Dán link ảnh chụp sản phẩm hoặc sự cố.</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold py-2 shadow-sm">
+                                <i class="bi bi-send-fill me-2"></i>Gửi phản hồi cho Ban Quản Trị
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Lịch sử khiếu nại đã gửi và phản hồi của Admin -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-danger"></i>Lịch Sử Khiếu Nại Của Bạn (@Model.Complaints.Count)</h5>
+                </div>
+                <div class="card-body p-3">
+                    @if (!Model.Complaints.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-emoji-smile fs-1 d-block mb-2 text-warning"></i>
+                            Bạn chưa có khiếu nại nào. Chúc bạn có trải nghiệm tuyệt vời cùng CMS Café!
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var c in Model.Complaints)
+                            {
+                                string badgeClass = c.ComplaintStatus switch
+                                {
+                                    "Resolved" => "bg-success",
+                                    "Rejected" => "bg-danger",
+                                    "InProgress" => "bg-primary",
+                                    _ => "bg-warning text-dark"
+                                };
+
+                                string statusText = c.ComplaintStatus switch
+                                {
+                                    "Resolved" => "Đã giải quyết",
+                                    "Rejected" => "Đã từ chối",
+                                    "InProgress" => "Đang xử lý",
+                                    _ => "Chờ tiếp nhận"
+                                };
+
+                                <div class="card border rounded-3 p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <span class="fw-bold text-primary">#@c.Order.OrderCode</span>
+                                            <span class="badge bg-light text-dark border ms-2">@c.ComplaintType</span>
+                                            <span class="badge @badgeClass ms-1">@statusText</span>
+                                        </div>
+                                        <small class="text-muted">@c.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <div class="text-warning small mb-1">
+                                            @for (int s = 0; s < (c.Rating ?? 5); s++) { <span>★</span> }
+                                        </div>
+                                        <p class="mb-1 text-dark">@c.Content</p>
+                                        @if (!string.IsNullOrWhiteSpace(c.EvidenceImageUrl))
+                                        {
+                                            <a href="@c.EvidenceImageUrl" target="_blank" class="small text-decoration-none">
+                                                <i class="bi bi-image me-1"></i>Xem ảnh minh chứng
+                                            </a>
+                                        }
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(c.AdminResponse))
+                                    {
+                                        <div class="bg-light p-3 rounded-3 border-start border-danger border-4 mt-2">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="small fw-bold text-danger"><i class="bi bi-shield-check me-1"></i>Phản hồi từ Quản trị viên:</span>
+                                                @if (c.ResolvedAt.HasValue)
+                                                {
+                                                    <small class="text-muted">@c.ResolvedAt.Value.ToString("dd/MM/yyyy HH:mm")</small>
+                                                }
+                                            </div>
+                                            <p class="mb-1 small">@c.AdminResponse</p>
+                                            @if (c.IsRefundApproved && c.RefundAmount.HasValue && c.RefundAmount.Value > 0)
+                                            {
+                                                <div class="badge bg-success p-2 mt-1">
+                                                    <i class="bi bi-cash-coin me-1"></i>Đã phê duyệt hoàn tiền: @c.RefundAmount.Value.ToString("N0") VNĐ
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

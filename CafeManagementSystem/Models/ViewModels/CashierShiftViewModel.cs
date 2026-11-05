@@ -15,7 +15,11 @@ public class CashierShiftViewModel
 
     public List<Order> ShiftCashOrders { get; set; } = new();
 
+    public List<Delivery> ShiftCodDeliveries { get; set; } = new();
+
     public decimal TotalCashSales => ShiftCashOrders.Sum(o => o.TotalAmount);
+
+    public decimal TotalCodSales => ShiftCodDeliveries.Sum(d => d.CodAmount);
 
     public decimal ExpectedCash => (CurrentShift?.OpeningCash ?? 0) + (CurrentShift?.SystemCashSales ?? 0);
 

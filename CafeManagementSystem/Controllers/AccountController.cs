@@ -165,8 +165,16 @@ public class AccountController : Controller
             CreatedAt = DateTime.Now
         };
 
-        _context.Users.Add(newUser);
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(string.Empty, "Không thể đăng ký tài khoản do xung đột số điện thoại hoặc email.");
+            return View(model);
+        }
 
         TempData["SuccessMessage"] = "Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.";
         return RedirectToAction(nameof(Login));
@@ -260,7 +268,19 @@ public class AccountController : Controller
         user.FullName = model.FullName.Trim();
         user.Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address.Trim();
 
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(string.Empty, "Không thể cập nhật hồ sơ do xung đột dữ liệu email.");
+            model.RoleName = user.Role.RoleName;
+            model.LoyaltyPoints = user.LoyaltyPoints;
+            model.Phone = user.Phone;
+            model.CreatedAt = user.CreatedAt;
+            return View(model);
+        }
 
         HttpContext.Session.SetString("FullName", user.FullName);
         TempData["SuccessMessage"] = "Cập nhật hồ sơ cá nhân thành công!";

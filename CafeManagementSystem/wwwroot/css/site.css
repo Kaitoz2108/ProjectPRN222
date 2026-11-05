@@ -20,3 +20,13 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Hiệu ứng ẩn mượt mà cho các thông báo (Alerts) */
+.alert.fade {
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out, margin 0.4s ease-out, padding 0.4s ease-out;
+}
+
+.alert:not(.show) {
+  opacity: 0;
+  transform: translateY(-8px);
+}

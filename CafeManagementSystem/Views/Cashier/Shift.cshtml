@@ -210,7 +210,7 @@
                                                 <td class="small text-muted">@ord.CreatedAt.ToString("HH:mm:ss")</td>
                                                 <td>@(ord.Customer?.FullName ?? "Khách vãng lai")</td>
                                                 <td class="small">
-                                                    @string.Join(", ", ord.OrderItems.Select(i => $"{i.Quantity}x {i.Variant.Product.ProductName} ({i.Variant.SizeName})"))
+                                                    @string.Join(", ", ord.OrderItems.Select(i => i.Variant?.Product != null ? $"{i.Quantity}x {i.Variant.Product.ProductName} ({i.Variant.SizeName})" : $"{i.Quantity}x Món #{i.VariantId}"))
                                                 </td>
                                                 <td class="fw-bold text-end text-success">@ord.TotalAmount.ToString("N0") đ</td>
                                             </tr>
@@ -221,10 +221,50 @@
                         </div>
                     </div>
                     <div class="card-footer bg-light d-flex justify-content-between">
-                        <span class="fw-semibold">Tổng cộng tiền mặt thu được:</span>
+                        <span class="fw-semibold">Tổng tiền mặt bán tại quầy:</span>
                         <span class="fw-bold text-success fs-5">@Model.TotalCashSales.ToString("N0") đ</span>
                     </div>
                 </div>
+
+                @if (Model.ShiftCodDeliveries.Any())
+                {
+                    <div class="card shadow-sm border-0 border-top border-info border-4 mt-3">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h5 class="fw-bold text-info mb-0">
+                                <i class="bi bi-bicycle me-2"></i>Tiền COD Shipper Bàn Giao Vào Ca (@Model.ShiftCodDeliveries.Count đơn)
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Mã đơn</th>
+                                            <th>Người nhận</th>
+                                            <th>Shipper</th>
+                                            <th class="text-end">Tiền COD</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var d in Model.ShiftCodDeliveries)
+                                        {
+                                            <tr>
+                                                <td class="fw-bold text-primary">#@d.Order.OrderCode</td>
+                                                <td>@d.RecipientName (@d.RecipientPhone)</td>
+                                                <td><span class="badge bg-secondary">@(d.DeliveryStaff?.FullName ?? "Shipper")</span></td>
+                                                <td class="fw-bold text-end text-success">@d.CodAmount.ToString("N0") đ</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light d-flex justify-content-between">
+                            <span class="fw-semibold">Tổng tiền COD nhận từ Shipper:</span>
+                            <span class="fw-bold text-info fs-5">@Model.TotalCodSales.ToString("N0") đ</span>
+                        </div>
+                    </div>
+                }
             </div>
 
             <!-- Cột phải: Form Đóng Ca & Bàn Giao Tiền Mặt (Shift & Handover Data) -->

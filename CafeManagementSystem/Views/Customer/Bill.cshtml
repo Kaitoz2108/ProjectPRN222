@@ -1,0 +1,160 @@
+@model CafeManagementSystem.Models.Entities.Order
+@{
+    ViewData["Title"] = "Hóa Đơn Điện Tử #" + Model.OrderCode;
+    var payment = Model.PaymentTransactions.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
+    var delivery = Model.Delivery;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a asp-action="MyOrders" class="btn btn-outline-secondary rounded-pill btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Lịch sử đơn
+                </a>
+                <button onclick="window.print()" class="btn btn-outline-dark rounded-pill btn-sm">
+                    <i class="bi bi-printer me-1"></i>In hóa đơn
+                </button>
+            </div>
+
+            <!-- Receipt Card -->
+            <div class="card shadow-sm border-0 p-4 bg-white rounded-4" id="printArea">
+                <div class="text-center mb-3">
+                    <h4 class="fw-bold text-dark mb-0"><i class="bi bi-cup-hot-fill text-danger me-1"></i>CAFÉ CMS</h4>
+                    <p class="text-muted small mb-0">HÓA ĐƠN ĐIỆN TỬ - ĐẶT HÀNG TRỰC TUYẾN</p>
+                    <div class="badge bg-danger fs-6 mt-1">#@Model.OrderCode</div>
+                </div>
+
+                <div class="small border-top border-bottom py-2 my-2 text-muted">
+                    <div class="d-flex justify-content-between">
+                        <span>Thời gian đặt:</span>
+                        <span class="text-dark">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Khách hàng:</span>
+                        <span class="text-dark fw-bold">@(Model.Customer?.FullName ?? "Khách hàng")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Hình thức đặt:</span>
+                        <span class="badge bg-info text-dark">@Model.OrderSource</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Trạng thái pha chế:</span>
+                        <span class="badge @(Model.PreparationStatus == "Ready" ? "bg-success" : Model.PreparationStatus == "Preparing" ? "bg-warning text-dark" : "bg-secondary")">
+                            @Model.PreparationStatus
+                        </span>
+                    </div>
+                    @if (delivery != null)
+                    {
+                        <div class="border-top pt-2 mt-2">
+                            <div class="d-flex justify-content-between">
+                                <span>Người nhận:</span>
+                                <span class="text-dark">@delivery.RecipientName (@delivery.RecipientPhone)</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Địa chỉ giao:</span>
+                                <span class="text-dark text-end" style="max-width: 60%;">@delivery.ShippingAddress</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Trạng thái giao:</span>
+                                <span class="badge @(delivery.DeliveryStatus == "Delivered" ? "bg-success" : "bg-primary")">
+                                    @delivery.DeliveryStatus
+                                </span>
+                            </div>
+                        </div>
+                    }
+                    <div class="d-flex justify-content-between mt-2 pt-2 border-top">
+                        <span>Phương thức thanh toán:</span>
+                        <span class="fw-bold text-primary">@payment?.PaymentMethod</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Trạng thái thanh toán:</span>
+                        <span class="badge @(payment?.PaymentStatus == "Success" ? "bg-success" : "bg-warning text-dark")">
+                            @(payment?.PaymentStatus == "Success" ? "Đã thanh toán" : "Chưa thanh toán (COD/Chờ duyệt)")
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Bảng danh sách món nước -->
+                <table class="table table-sm border-bottom mb-3" style="font-size: 0.88rem;">
+                    <thead>
+                        <tr class="text-muted">
+                            <th>Tên món</th>
+                            <th class="text-center">SL</th>
+                            <th class="text-end">Đ.Giá</th>
+                            <th class="text-end">T.Tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@(item.Variant?.Product?.ProductName ?? "Sản phẩm")</strong>
+                                    <span class="badge bg-light text-dark border">@(item.Variant?.SizeName ?? "")</span>
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        Đường: @item.SugarLevel | Đá: @item.IceLevel
+                                        @if (!string.IsNullOrEmpty(item.ItemNote))
+                                        {
+                                            <span class="text-danger">(@item.ItemNote)</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end">@item.UnitPrice.ToString("N0")</td>
+                                <td class="text-end fw-semibold">@((item.UnitPrice * item.Quantity).ToString("N0"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Tiền nước:</span>
+                        <span>@Model.SubTotal.ToString("N0") đ</span>
+                    </div>
+                    @if (Model.ShippingFee > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Phí giao hàng:</span>
+                            <span>@Model.ShippingFee.ToString("N0") đ</span>
+                        </div>
+                    }
+                    @if (Model.DiscountAmount > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-1 text-danger">
+                            <span>Giảm giá dùng điểm (@Model.LoyaltyPointsUsed điểm):</span>
+                            <span>-@Model.DiscountAmount.ToString("N0") đ</span>
+                        </div>
+                    }
+                    <div class="d-flex justify-content-between border-top pt-2 mt-1 fs-5 fw-bold text-dark">
+                        <span>TỔNG TIỀN:</span>
+                        <span class="text-danger">@Model.TotalAmount.ToString("N0") đ</span>
+                    </div>
+                    @if (Model.LoyaltyPointsEarned > 0)
+                    {
+                        <div class="d-flex justify-content-between text-success mt-1">
+                            <span>Điểm tích lũy nhận được:</span>
+                            <span>+@Model.LoyaltyPointsEarned điểm</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="text-center mt-4 pt-3 border-top text-muted small">
+                    <p class="mb-1 fw-bold">Cảm ơn Quý khách đã ủng hộ CMS Café!</p>
+                    <p class="mb-0">Hẹn gặp lại Quý khách lần sau.</p>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <a asp-action="Complaints" class="btn btn-outline-danger flex-grow-1 rounded-pill">
+                    <i class="bi bi-chat-dots me-1"></i>Gửi phản hồi / Khiếu nại
+                </a>
+                <a asp-action="Menu" class="btn btn-danger flex-grow-1 rounded-pill">
+                    <i class="bi bi-cup-straw me-1"></i>Đặt thêm món
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
