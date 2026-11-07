@@ -26,6 +26,7 @@ public class AdminProductSalesRow
 {
     public string ProductName { get; set; } = "";
     public int Quantity { get; set; }
+    public string? ImageUrl { get; set; }
 }
 public class AdminInventoryRow
 {

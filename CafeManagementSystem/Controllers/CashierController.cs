@@ -295,6 +295,7 @@ public class CashierController : Controller
                 VariantId = variant.VariantId,
                 ProductId = variant.ProductId,
                 ProductName = variant.Product.ProductName,
+                ImageUrl = variant.Product.ImageUrl,
                 SizeName = variant.SizeName,
                 UnitPrice = variant.Price,
                 Quantity = quantity,

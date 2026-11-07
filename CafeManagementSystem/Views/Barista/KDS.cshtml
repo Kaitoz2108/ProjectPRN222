@@ -4,34 +4,41 @@
 }
 <meta http-equiv="refresh" content="15">
 
-<div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="container-fluid py-3 px-3 px-lg-4">
+    <!-- Header Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
         <div>
-            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-cup-hot-fill text-warning me-2"></i>Màn Hình Pha Chế (KDS - Barista)</h3>
-            <p class="text-muted mb-0">Hàng đợi các món nước đang chờ pha chế và giao cho khách</p>
+            <h2 class="fw-bold text-dark mb-1">Màn hình điều phối quầy bar (KDS)</h2>
+            <p class="text-muted small mb-0">Hàng đợi món nước chờ pha chế và điều phối ra quầy nhận / shipper</p>
         </div>
         <div class="d-flex flex-wrap gap-2 align-items-center">
-            <span class="badge bg-warning text-dark fs-6 px-3 py-2">
-                <i class="bi bi-hourglass-split me-1"></i> Chờ: @Model.TotalPendingCount
+            <span class="cafe-badge cafe-badge-warning">
+                <i class="bi bi-hourglass-split"></i> Chờ làm: <strong>@Model.TotalPendingCount</strong>
             </span>
-            <span class="badge bg-primary fs-6 px-3 py-2">
-                <i class="bi bi-fire me-1"></i> Đang làm: @Model.TotalPreparingCount
+            <span class="cafe-badge" style="background-color: var(--primary-green-light); color: var(--primary-green);">
+                <i class="bi bi-cup-hot-fill"></i> Đang pha: <strong>@Model.TotalPreparingCount</strong>
             </span>
-            <span class="badge bg-dark fs-6 px-3 py-2">
+            <span class="badge rounded-pill bg-light text-dark border px-3 py-2 fw-semibold">
                 <i class="bi bi-cup-straw me-1"></i> Tổng ly: @Model.TotalCupsWaiting
             </span>
-            <a class="btn btn-outline-dark" asp-controller="Barista" asp-action="Wastage">
-                <i class="bi bi-box-seam me-1"></i> Kho Quầy Bar & Báo Hao Hụt
+            <a class="btn btn-cafe-outline rounded-pill btn-sm d-inline-flex align-items-center gap-1" asp-controller="Barista" asp-action="Wastage">
+                <i class="bi bi-box-seam"></i> Kho quầy & Hao hụt
             </a>
         </div>
     </div>
 
     @if (!Model.Orders.Any())
     {
-        <div class="alert alert-success p-4 text-center rounded-3 shadow-sm">
-            <i class="bi bi-check-circle-fill fs-2 d-block mb-2 text-success"></i>
-            <h5>Hiện tại không có món nước nào đang chờ pha chế!</h5>
-            <p class="text-muted mb-0">Hệ thống sẽ tự động làm mới sau 15 giây.</p>
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5" 
+             style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+            <div class="card-body py-5">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                     style="width: 72px; height: 72px; background-color: var(--primary-green-light); color: var(--primary-green);">
+                    <i class="bi bi-check-circle-fill fs-2"></i>
+                </div>
+                <h4 class="fw-bold text-dark">Hiện tại không có món nước nào đang chờ pha chế</h4>
+                <p class="text-muted small mb-0">Tất cả đơn hàng đã được phục vụ. Trang sẽ tự động tải lại sau 15 giây.</p>
+            </div>
         </div>
     }
     else
@@ -40,122 +47,139 @@
             @foreach (var order in Model.Orders)
             {
                 var isLongWait = order.ElapsedMinutes > 10;
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 shadow-sm border-2 @(order.PreparationStatus == "Preparing" ? "border-primary" : "border-warning")">
-                        <div class="card-header @(order.PreparationStatus == "Preparing" ? "bg-primary text-white" : "bg-warning text-dark") d-flex justify-content-between align-items-center py-2">
-                            <span class="fw-bold">#@order.OrderCode</span>
-                            <span class="badge @(order.PreparationStatus == "Preparing" ? "bg-light text-primary" : "bg-dark text-white")">
-                                @order.PreparationStatus
+                var isPreparing = order.PreparationStatus == "Preparing";
+
+                <div class="col-md-6 col-lg-4 col-xl-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden" 
+                         style="background-color: var(--surface-card); border: 1.5px solid @(isPreparing ? "var(--primary-green)" : "var(--accent-caramel)") !important;">
+                        
+                        <!-- Header Ticket -->
+                        <div class="p-3 d-flex justify-content-between align-items-center text-white"
+                             style="background-color: @(isPreparing ? "var(--primary-green)" : "var(--accent-caramel)");">
+                            <span class="fw-bold fs-6">#@order.OrderCode</span>
+                            <span class="badge rounded-pill px-3 py-1 fw-bold" style="background-color: rgba(255,255,255,0.25); color: #FFFFFF;">
+                                @(isPreparing ? "Đang pha chế" : "Chờ nhận đơn")
                             </span>
                         </div>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between small mb-2">
-                                <span class="text-muted"><i class="bi bi-clock me-1"></i>@order.CreatedAt.ToString("HH:mm:ss")</span>
-                                <span class="badge @(isLongWait ? "bg-danger" : "bg-secondary")">@order.ElapsedMinutes phút</span>
-                                <span class="badge bg-info text-dark"><i class="bi bi-tag me-1"></i>@order.OrderSource</span>
-                            </div>
-                            @if (!string.IsNullOrEmpty(order.CustomerName))
-                            {
-                                <div class="small mb-2"><i class="bi bi-person me-1"></i>@order.CustomerName @(string.IsNullOrEmpty(order.CustomerPhone) ? "" : $"({order.CustomerPhone})")</div>
-                            }
-                            @if (!string.IsNullOrEmpty(order.OrderNote))
-                            {
-                                <div class="alert alert-secondary py-1 px-2 small mb-2">Ghi chú đơn: @order.OrderNote</div>
-                            }
-                            <ul class="list-group list-group-flush mb-3">
-                                @foreach (var item in order.Items)
+
+                        <!-- Ticket Body -->
+                        <div class="card-body p-3 d-flex flex-column justify-content-between">
+                            <div>
+                                <!-- Time & Meta Chips -->
+                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom" style="border-color: var(--border-light) !important;">
+                                    <span class="text-muted small" style="font-size: 0.8rem;">
+                                        <i class="bi bi-clock me-1"></i>@order.CreatedAt.ToString("HH:mm:ss")
+                                    </span>
+                                    <span class="badge rounded-pill @(isLongWait ? "bg-danger text-white" : "bg-light text-dark border")" style="font-size: 0.78rem;">
+                                        Chờ: @order.ElapsedMinutes phút
+                                    </span>
+                                    <span class="badge rounded-pill bg-light text-dark border" style="font-size: 0.75rem;">
+                                        @(order.OrderSource == "OnlineDelivery" ? "Online" : "Tại quầy")
+                                    </span>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(order.CustomerName))
                                 {
-                                    <li class="list-group-item px-0 py-2">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <strong>@item.Quantity x @item.ProductName</strong>
-                                            <span class="badge bg-secondary">Size @item.SizeName</span>
-                                        </div>
-                                        <div class="small text-muted">
-                                            <span>Đường: @(item.SugarLevel ?? "100%")</span> | <span>Đá: @(item.IceLevel ?? "100%")</span>
-                                        </div>
-                                        @if (!string.IsNullOrEmpty(item.ItemNote))
-                                        {
-                                            <div class="small text-danger fst-italic">Note: @item.ItemNote</div>
-                                        }
-                                        @if (item.Recipes.Any())
-                                        {
-                                            <div class="mt-2">
-                                                <div class="table-responsive">
-                                                    <table class="table table-sm table-bordered mb-1">
-                                                        <thead class="table-light">
-                                                            <tr class="small">
-                                                                <th>Nguyên liệu</th>
-                                                                <th>SL/ly</th>
-                                                                <th>Tổng</th>
-                                                                <th>ĐVT</th>
-                                                                <th>Tồn</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach (var r in item.Recipes)
-                                                            {
-                                                                <tr class="small @(r.IsLowStock ? "table-danger" : "")">
-                                                                    <td>@r.IngredientName</td>
-                                                                    <td>@r.QuantityRequiredPerCup.ToString("0.00")</td>
-                                                                    <td>@r.TotalQuantityRequired.ToString("0.00")</td>
-                                                                    <td>@r.Unit</td>
-                                                                    <td>@r.CurrentStock.ToString("0.00")</td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
+                                    <div class="small text-muted mb-2" style="font-size: 0.82rem;">
+                                        <i class="bi bi-person me-1 text-dark"></i><strong>@order.CustomerName</strong> @(string.IsNullOrEmpty(order.CustomerPhone) ? "" : $"({order.CustomerPhone})")
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrEmpty(order.OrderNote))
+                                {
+                                    <div class="p-2 rounded-3 small mb-2" style="background-color: #FFF9F0; border: 1px dashed var(--accent-caramel); font-size: 0.78rem;">
+                                        <strong>Ghi chú:</strong> @order.OrderNote
+                                    </div>
+                                }
+
+                                <!-- Items List -->
+                                <div class="d-flex flex-column gap-2 my-2">
+                                    @foreach (var item in order.Items)
+                                    {
+                                        <div class="p-2 rounded-3 bg-white border" style="border-color: var(--border-subtle) !important;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <strong class="text-dark">@item.Quantity x @item.ProductName</strong>
+                                                <span class="badge rounded-pill bg-light text-dark border">Size @item.SizeName</span>
+                                            </div>
+                                            <div class="small text-muted" style="font-size: 0.78rem;">
+                                                <span>Đường: @(item.SugarLevel ?? "100%")</span> • <span>Đá: @(item.IceLevel ?? "100%")</span>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(item.ItemNote))
+                                            {
+                                                <div class="small fst-italic" style="color: var(--status-danger); font-size: 0.75rem;">
+                                                    Note: @item.ItemNote
                                                 </div>
-                                                <button class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#recipeModal_@order.OrderId@(System.Math.Abs(item.GetHashCode()))">
-                                                    <i class="bi bi-journal-text me-1"></i>Xem Chi Tiết Công Thức & Hướng Dẫn
-                                                </button>
-                                                <div class="modal fade" id="recipeModal_@order.OrderId@(System.Math.Abs(item.GetHashCode()))" tabindex="-1">
-                                                    <div class="modal-dialog modal-dialog-centered">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h6 class="modal-title">@item.Quantity x @item.ProductName - Size @item.SizeName</h6>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                @foreach (var r in item.Recipes)
-                                                                {
-                                                                    <div class="mb-2">
-                                                                        <div class="fw-semibold">@r.IngredientName (@r.TotalQuantityRequired.ToString("0.00") @r.Unit)</div>
-                                                                        <div class="small text-muted">@r.PreparationGuide</div>
-                                                                    </div>
-                                                                }
-                                                            </div>
+                                            }
+
+                                            <!-- Collapsible Recipe BOM Guide -->
+                                            @if (item.Recipes.Any())
+                                            {
+                                                <div class="mt-2 pt-2 border-top" style="border-color: var(--border-light) !important;">
+                                                    <button class="btn btn-link btn-sm p-0 text-decoration-none small" 
+                                                            style="color: var(--primary-green); font-size: 0.75rem;"
+                                                            type="button" data-bs-toggle="collapse" data-bs-target="#recipe_@order.OrderId@(System.Math.Abs(item.GetHashCode()))">
+                                                        <i class="bi bi-journal-text me-1"></i> Xem định lượng công thức
+                                                    </button>
+                                                    <div class="collapse mt-1" id="recipe_@order.OrderId@(System.Math.Abs(item.GetHashCode()))">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-sm table-bordered mb-0" style="font-size: 0.75rem;">
+                                                                <thead style="background-color: #F8F5EE;">
+                                                                    <tr>
+                                                                        <th>Nguyên liệu</th>
+                                                                        <th>Định lượng</th>
+                                                                        <th>Tồn</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach (var r in item.Recipes)
+                                                                    {
+                                                                        <tr class="@(r.IsLowStock ? "table-danger" : "")">
+                                                                            <td>@r.IngredientName</td>
+                                                                            <td>@r.TotalQuantityRequired.ToString("0.##") @r.Unit</td>
+                                                                            <td>@r.CurrentStock.ToString("0.##")</td>
+                                                                        </tr>
+                                                                    }
+                                                                </tbody>
+                                                            </table>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        }
-                                    </li>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Action Button -->
+                            <div class="pt-3 border-top mt-2" style="border-color: var(--border-light) !important;">
+                                @if (order.PreparationStatus == "Pending")
+                                {
+                                    <form asp-controller="Barista" asp-action="UpdatePreparationStatus" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@order.OrderId" />
+                                        <input type="hidden" name="newStatus" value="Preparing" />
+                                        <button class="btn btn-cafe-caramel w-100 rounded-pill fw-bold py-2">
+                                            <i class="bi bi-play-fill me-1"></i> Bắt đầu pha chế
+                                        </button>
+                                    </form>
                                 }
-                            </ul>
-                        </div>
-                        <div class="card-footer bg-white">
-                            @if (order.PreparationStatus == "Pending")
-                            {
-                                <form asp-controller="Barista" asp-action="UpdatePreparationStatus" method="post" class="mb-2">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="orderId" value="@order.OrderId" />
-                                    <input type="hidden" name="newStatus" value="Preparing" />
-                                    <button class="btn btn-warning w-100"><i class="bi bi-play-fill me-1"></i>Bắt đầu pha chế</button>
-                                </form>
-                            }
-                            else if (order.PreparationStatus == "Preparing")
-                            {
-                                <form asp-controller="Barista" asp-action="UpdatePreparationStatus" method="post" onsubmit="return confirm('Xác nhận hoàn tất đơn và trừ kho tự động theo công thức?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="orderId" value="@order.OrderId" />
-                                    <input type="hidden" name="newStatus" value="Ready" />
-                                    <button class="btn btn-success w-100"><i class="bi bi-check-lg me-1"></i>Hoàn tất & Trừ kho tự động</button>
-                                </form>
-                            }
-                            @if (!string.IsNullOrEmpty(order.BaristaName))
-                            {
-                                <div class="small text-muted text-center mt-1">Barista: @order.BaristaName</div>
-                            }
+                                else if (order.PreparationStatus == "Preparing")
+                                {
+                                    <form asp-controller="Barista" asp-action="UpdatePreparationStatus" method="post" onsubmit="return confirm('Xác nhận hoàn tất đơn và trừ kho tự động theo công thức?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@order.OrderId" />
+                                        <input type="hidden" name="newStatus" value="Ready" />
+                                        <button class="btn btn-cafe-primary w-100 rounded-pill fw-bold py-2">
+                                            <i class="bi bi-check-lg me-1"></i> Hoàn tất & Trừ kho
+                                        </button>
+                                    </form>
+                                }
+
+                                @if (!string.IsNullOrEmpty(order.BaristaName))
+                                {
+                                    <div class="text-muted text-center mt-1" style="font-size: 0.75rem;">Barista: @order.BaristaName</div>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>

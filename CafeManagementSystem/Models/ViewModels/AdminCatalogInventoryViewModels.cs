@@ -26,6 +26,30 @@ public class AdminCreateProductInput
     [StringLength(255, ErrorMessage = "Đường dẫn ảnh không vượt quá 255 ký tự")]
     public string? ImageUrl { get; set; }
 
+    public Microsoft.AspNetCore.Http.IFormFile? ImageFile { get; set; }
+
+    public bool IsAvailable { get; set; } = true;
+}
+
+public class AdminUpdateProductInput
+{
+    public int ProductId { get; set; }
+
+    [Required(ErrorMessage = "Vui lòng chọn danh mục")]
+    public int CategoryId { get; set; }
+
+    [Required(ErrorMessage = "Vui lòng nhập tên sản phẩm")]
+    [StringLength(100, ErrorMessage = "Tên không vượt quá 100 ký tự")]
+    public string ProductName { get; set; } = string.Empty;
+
+    [StringLength(500, ErrorMessage = "Mô tả không vượt quá 500 ký tự")]
+    public string? Description { get; set; }
+
+    [StringLength(255, ErrorMessage = "Đường dẫn ảnh không vượt quá 255 ký tự")]
+    public string? ImageUrl { get; set; }
+
+    public Microsoft.AspNetCore.Http.IFormFile? ImageFile { get; set; }
+
     public bool IsAvailable { get; set; } = true;
 }
 

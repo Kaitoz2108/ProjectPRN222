@@ -3,63 +3,84 @@
     ViewData["Title"] = "Kho Quầy Bar & Báo Hao Hụt";
 }
 
-<div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="container-fluid py-3 px-3 px-lg-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
         <div>
-            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-box-seam text-danger me-2"></i>Kho Quầy Bar & Báo Hao Hụt</h3>
-            <p class="text-muted mb-0">Theo dõi tồn kho, cảnh báo tối thiểu và ghi nhận hao hụt trong ca</p>
+            <h2 class="fw-bold text-dark mb-1">Kho quầy bar & Báo hao hụt</h2>
+            <p class="text-muted small mb-0">Theo dõi tồn kho nguyên liệu quầy pha chế, mức cảnh báo tối thiểu và ghi nhận hao hụt</p>
         </div>
-        <a class="btn btn-outline-dark" asp-controller="Barista" asp-action="KDS">
+        <a class="btn btn-cafe-primary rounded-pill px-4 fw-semibold" asp-controller="Barista" asp-action="KDS">
             <i class="bi bi-cup-hot me-1"></i> Quay lại KDS
         </a>
     </div>
 
+    <!-- 3 Summary Stat Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-primary-subtle text-primary p-3"><i class="bi bi-list-check fs-4"></i></div>
+            <div class="card border-0 shadow-sm rounded-4 p-3" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 48px; height: 48px; background-color: var(--primary-green-light); color: var(--primary-green);">
+                        <i class="bi bi-list-check fs-4"></i>
+                    </div>
                     <div>
-                        <div class="text-muted small">Tổng loại nguyên liệu</div>
-                        <div class="fs-4 fw-bold">@Model.Summary.TotalIngredientTypes</div>
+                        <div class="text-muted small" style="font-size: 0.78rem;">Tổng loại nguyên liệu</div>
+                        <div class="fs-4 fw-bold text-dark">@Model.Summary.TotalIngredientTypes</div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-warning-subtle text-warning p-3"><i class="bi bi-exclamation-triangle fs-4"></i></div>
+            <div class="card border-0 shadow-sm rounded-4 p-3" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 48px; height: 48px; background-color: #FFF9F0; color: #B76E00;">
+                        <i class="bi bi-exclamation-triangle fs-4"></i>
+                    </div>
                     <div>
-                        <div class="text-muted small">Cảnh báo sắp hết</div>
-                        <div class="fs-4 fw-bold">@Model.Summary.LowStockCount</div>
+                        <div class="text-muted small" style="font-size: 0.78rem;">Cảnh báo sắp hết</div>
+                        <div class="fs-4 fw-bold" style="color: #B76E00;">@Model.Summary.LowStockCount</div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="bi bi-trash fs-4"></i></div>
+            <div class="card border-0 shadow-sm rounded-4 p-3" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 48px; height: 48px; background-color: #FDF0F0; color: var(--status-danger);">
+                        <i class="bi bi-trash fs-4"></i>
+                    </div>
                     <div>
-                        <div class="text-muted small">Số lượt hao hụt hôm nay</div>
-                        <div class="fs-4 fw-bold">@Model.Summary.TodayWastageCount</div>
+                        <div class="text-muted small" style="font-size: 0.78rem;">Số lượt hao hụt hôm nay</div>
+                        <div class="fs-4 fw-bold text-dark">@Model.Summary.TodayWastageCount</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-3">
+    <div class="row g-4">
+        <!-- Cột trái: Form báo hao hụt -->
         <div class="col-lg-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white fw-bold"><i class="bi bi-clipboard-x me-2 text-danger"></i>Báo cáo Hao hụt / Đổ hỏng</div>
-                <div class="card-body">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                
+                <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-clipboard-x me-2" style="color: var(--status-danger);"></i>Báo Cáo Hao Hụt / Đổ Hỏng
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
                     <form asp-controller="Barista" asp-action="ReportWastage" method="post" onsubmit="return confirm('Xác nhận ghi nhận hao hụt và trừ tồn kho?');">
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
-                            <label class="form-label">Nguyên liệu</label>
-                            <select asp-for="ReportForm.IngredientId" class="form-select" required>
+                            <label class="form-label small fw-bold text-dark">Nguyên liệu <span class="text-danger">*</span></label>
+                            <select asp-for="ReportForm.IngredientId" class="form-select form-select-sm" required>
                                 <option value="">-- Chọn nguyên liệu --</option>
                                 @foreach (var ing in Model.Ingredients)
                                 {
@@ -67,13 +88,15 @@
                                 }
                             </select>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Số lượng hao hụt</label>
-                            <input asp-for="ReportForm.WastedQuantity" type="number" step="0.01" min="0.01" class="form-control" required />
+                            <label class="form-label small fw-bold text-dark">Số lượng hao hụt <span class="text-danger">*</span></label>
+                            <input asp-for="ReportForm.WastedQuantity" type="number" step="0.01" min="0.01" class="form-control form-control-sm" required />
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Lý do</label>
-                            <select asp-for="ReportForm.Reason" class="form-select" required>
+                            <label class="form-label small fw-bold text-dark">Lý do hao hụt <span class="text-danger">*</span></label>
+                            <select asp-for="ReportForm.Reason" class="form-select form-select-sm" required>
                                 <option value="">-- Chọn lý do --</option>
                                 <option value="Pha nhầm">Pha nhầm</option>
                                 <option value="Đánh đổ nguyên liệu">Đánh đổ nguyên liệu</option>
@@ -82,52 +105,68 @@
                                 <option value="Khác">Khác</option>
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Ghi chú riêng (tuỳ chọn)</label>
-                            <textarea asp-for="ReportForm.Note" class="form-control" rows="2"></textarea>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-dark">Ghi chú riêng (tùy chọn)</label>
+                            <textarea asp-for="ReportForm.Note" class="form-control form-control-sm" rows="3" placeholder="Mô tả sự cố hoặc người liên quan..."></textarea>
                         </div>
-                        <button class="btn btn-danger w-100"><i class="bi bi-send me-1"></i>Ghi nhận hao hụt</button>
+
+                        <button class="btn btn-cafe-primary w-100 rounded-pill py-2 fw-bold" style="background-color: var(--status-danger) !important; border-color: var(--status-danger) !important;">
+                            <i class="bi bi-send me-1"></i> Ghi Nhận Hao Hụt
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
+
+        <!-- Cột phải: Bảng tồn kho và lịch sử biến động -->
         <div class="col-lg-8">
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-white fw-bold"><i class="bi bi-boxes me-2 text-primary"></i>Tra cứu Tồn kho Nguyên liệu tại Quầy Bar</div>
+            <!-- Tồn kho tại quầy bar -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="card-header border-bottom p-3 d-flex justify-content-between align-items-center" 
+                     style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-boxes me-2" style="color: var(--primary-green);"></i>Tồn Kho Nguyên Liệu Tại Quầy Bar
+                    </h5>
+                    <span class="badge rounded-pill bg-light text-dark border">@Model.Ingredients.Count nguyên liệu</span>
+                </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Mã</th>
-                                    <th>Tên nguyên liệu</th>
-                                    <th>Đơn vị</th>
-                                    <th>Tồn kho</th>
-                                    <th>Mức tối thiểu</th>
-                                    <th>Trạng thái</th>
-                                    <th>Cập nhật cuối</th>
+                    <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                            <thead style="background-color: #F8F5EE;" class="sticky-top">
+                                <tr class="text-muted small">
+                                    <th class="ps-3 py-2">Mã</th>
+                                    <th class="py-2">Tên nguyên liệu</th>
+                                    <th class="py-2">Đơn vị</th>
+                                    <th class="py-2 text-end">Tồn kho</th>
+                                    <th class="py-2 text-end">Mức tối thiểu</th>
+                                    <th class="py-2 text-center">Trạng thái</th>
+                                    <th class="pe-3 py-2 text-end">Cập nhật</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var ing in Model.Ingredients)
                                 {
-                                    <tr class="@(ing.IsLowStock ? "table-warning" : "")">
-                                        <td>@ing.IngredientId</td>
-                                        <td class="fw-semibold">@ing.IngredientName</td>
-                                        <td>@ing.Unit</td>
-                                        <td>@ing.StockQuantity.ToString("0.00")</td>
-                                        <td>@ing.MinStockLevel.ToString("0.00")</td>
-                                        <td>
+                                    <tr style="border-bottom: 1px solid var(--border-light);">
+                                        <td class="ps-3 py-2 text-muted">#@ing.IngredientId</td>
+                                        <td class="py-2 fw-semibold text-dark">@ing.IngredientName</td>
+                                        <td class="py-2 text-muted small">@ing.Unit</td>
+                                        <td class="py-2 text-end fw-bold" style="color: @(ing.IsLowStock ? "var(--status-danger)" : "var(--primary-green)");">
+                                            @ing.StockQuantity.ToString("0.##")
+                                        </td>
+                                        <td class="py-2 text-end text-muted small">@ing.MinStockLevel.ToString("0.##")</td>
+                                        <td class="py-2 text-center">
                                             @if (ing.IsLowStock)
                                             {
-                                                <span class="badge bg-danger">Sắp hết</span>
+                                                <span class="cafe-badge cafe-badge-danger">Sắp hết</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-success">Ổn định</span>
+                                                <span class="cafe-badge cafe-badge-success">Ổn định</span>
                                             }
                                         </td>
-                                        <td class="small text-muted">@ing.LastUpdated.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="pe-3 py-2 text-end small text-muted">@ing.LastUpdated.ToString("dd/MM HH:mm")</td>
                                     </tr>
                                 }
                             </tbody>
@@ -135,46 +174,53 @@
                     </div>
                 </div>
             </div>
-            <div class="card shadow-sm">
-                <div class="card-header bg-white fw-bold"><i class="bi bi-clock-history me-2 text-secondary"></i>Lịch sử biến động & hao hụt hôm nay</div>
+
+            <!-- Lịch sử biến động hôm nay -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-clock-history me-2" style="color: var(--accent-caramel);"></i>Lịch Sử Biến Động & Hao Hụt Hôm Nay
+                    </h5>
+                </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Thời gian</th>
-                                    <th>Loại giao dịch</th>
-                                    <th>Nguyên liệu</th>
-                                    <th>Số lượng thay đổi</th>
-                                    <th>Người thực hiện</th>
-                                    <th>Lý do/Ghi chú</th>
+                    <div class="table-responsive" style="max-height: 240px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                            <thead style="background-color: #F8F5EE;" class="sticky-top">
+                                <tr class="text-muted small">
+                                    <th class="ps-3 py-2">Thời gian</th>
+                                    <th class="py-2">Loại giao dịch</th>
+                                    <th class="py-2">Nguyên liệu</th>
+                                    <th class="py-2 text-end">Thay đổi</th>
+                                    <th class="py-2">Người thực hiện</th>
+                                    <th class="pe-3 py-2">Lý do / Ghi chú</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @if (!Model.TodayTransactions.Any())
                                 {
-                                    <tr><td colspan="6" class="text-center text-muted py-3">Chưa có giao dịch nào hôm nay</td></tr>
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Chưa có giao dịch nào hôm nay</td></tr>
                                 }
                                 else
                                 {
                                     @foreach (var t in Model.TodayTransactions)
                                     {
-                                        <tr>
-                                            <td class="small">@t.Time.ToString("HH:mm:ss")</td>
-                                            <td>
+                                        <tr style="border-bottom: 1px solid var(--border-light);">
+                                            <td class="ps-3 py-2 small text-muted">@t.Time.ToString("HH:mm:ss")</td>
+                                            <td class="py-2">
                                                 @if (t.TransactionType == "Wastage")
                                                 {
-                                                    <span class="badge bg-danger">Wastage</span>
+                                                    <span class="cafe-badge cafe-badge-danger">Hao hụt quầy</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-info text-dark">OrderDeduction</span>
+                                                    <span class="cafe-badge" style="background-color: var(--primary-green-light); color: var(--primary-green);">Trừ đơn bán</span>
                                                 }
                                             </td>
-                                            <td>@t.IngredientName</td>
-                                            <td class="text-danger fw-semibold">@t.QuantityChanged.ToString("0.00")</td>
-                                            <td>@t.PerformedByName</td>
-                                            <td class="small">@t.ReasonOrNote</td>
+                                            <td class="py-2 fw-semibold text-dark">@t.IngredientName</td>
+                                            <td class="py-2 text-end fw-bold" style="color: var(--status-danger);">@t.QuantityChanged.ToString("0.##")</td>
+                                            <td class="py-2 small">@t.PerformedByName</td>
+                                            <td class="pe-3 py-2 small text-muted">@t.ReasonOrNote</td>
                                         </tr>
                                     }
                                 }

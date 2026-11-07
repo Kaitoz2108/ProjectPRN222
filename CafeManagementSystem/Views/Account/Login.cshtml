@@ -1,84 +1,104 @@
 @model CafeManagementSystem.Models.ViewModels.LoginViewModel
 @{
-    ViewData["Title"] = "Đăng Nhập Hệ Thống CMS";
+    ViewData["Title"] = "Đăng Nhập Hệ Thống";
 }
 
-<div class="row justify-content-center py-4">
+<div class="row justify-content-center py-5">
     <div class="col-md-6 col-lg-5">
-        <div class="card shadow-sm border-0 rounded-3">
-            <div class="card-header bg-primary text-white text-center py-3 rounded-top-3">
-                <h4 class="mb-0 fw-bold"><i class="bi bi-cup-hot-fill me-2"></i>Café Management System</h4>
-                <small class="text-white-50">Đăng nhập tài khoản làm việc hoặc khách hàng</small>
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" 
+             style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+            
+            <!-- Header Brand Banner -->
+            <div class="p-4 text-center border-bottom" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2"
+                     style="width: 52px; height: 52px; background-color: var(--primary-green-light); color: var(--primary-green);">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width: 28px; height: 28px;">
+                        <path d="M2.08 14.88C1.52 11.23 2.74 7.42 5.56 4.6C8.38 1.78 12.19 0.56 15.84 1.12C16.89 1.28 17.84 1.84 18.5 2.68C19.86 4.41 19.34 6.89 17.65 8.58C16.48 9.75 14.85 10.45 13.15 10.74C10.66 11.17 8.35 12.35 6.64 14.06C5.46 15.24 3.79 16.03 2.08 14.88ZM21.92 9.12C22.48 12.77 21.26 16.58 18.44 19.4C15.62 22.22 11.81 23.44 8.16 22.88C7.11 22.72 6.16 22.16 5.5 21.32C4.14 19.59 4.66 17.11 6.35 15.42C7.52 14.25 9.15 13.55 10.85 13.26C13.34 12.83 15.65 11.65 17.36 9.94C18.54 8.76 20.21 7.97 21.92 9.12Z"/>
+                    </svg>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Laura Café</h4>
+                <div class="small text-muted fw-semibold mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase;">Management System</div>
+                <p class="text-muted small mb-0">Đăng nhập tài khoản nhân viên hoặc khách hàng</p>
             </div>
+
             <div class="card-body p-4">
                 <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" id="loginForm">
                     @Html.AntiForgeryToken()
 
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 rounded-3 small" role="alert"></div>
 
                     <div class="mb-3">
-                        <label asp-for="Phone" class="form-label fw-semibold"></label>
+                        <label asp-for="Phone" class="form-label small fw-bold text-dark"></label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                            <input asp-for="Phone" class="form-control" id="phoneInput" placeholder="VD: 0901000002" autofocus />
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-telephone"></i></span>
+                            <input asp-for="Phone" class="form-control border-start-0" id="phoneInput" placeholder="VD: 0901000002" autofocus />
                         </div>
                         <span asp-validation-for="Phone" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Password" class="form-label fw-semibold"></label>
+                        <label asp-for="Password" class="form-label small fw-bold text-dark"></label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input asp-for="Password" type="password" class="form-control" id="passwordInput" placeholder="Nhập mật khẩu" />
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                            <input asp-for="Password" type="password" class="form-control border-start-0" id="passwordInput" placeholder="Nhập mật khẩu" />
                         </div>
                         <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
 
-                    <div class="mb-3 form-check">
+                    <div class="mb-4 form-check">
                         <input asp-for="RememberMe" class="form-check-input" />
-                        <label asp-for="RememberMe" class="form-check-label"></label>
+                        <label asp-for="RememberMe" class="form-check-label small text-muted"></label>
                     </div>
 
                     <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary btn-lg fw-semibold">
+                        <button type="submit" class="btn btn-cafe-primary rounded-pill py-2 fw-bold fs-6">
                             <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
                         </button>
                     </div>
 
-                    <div class="text-center">
+                    <div class="text-center small">
                         <span class="text-muted">Chưa có tài khoản khách hàng?</span>
-                        <a asp-action="Register" class="fw-semibold text-decoration-none">Đăng ký ngay</a>
+                        <a asp-action="Register" class="fw-bold text-decoration-none ms-1" style="color: var(--primary-green);">Đăng ký ngay</a>
                     </div>
                 </form>
 
-                <hr class="my-4" />
+                <hr class="my-4" style="border-color: var(--border-color);" />
 
                 <!-- Hộp Chọn Nhanh Tài Khoản Demo 5 Role -->
-                <div class="bg-light p-3 rounded-3 border">
-                    <h6 class="fw-bold text-secondary mb-2 text-center">
-                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Chọn nhanh tài khoản Demo (5 Role)
-                    </h6>
-                    <p class="text-muted small text-center mb-3">Bấm vào nút để tự động điền SĐT & Mật khẩu chung (<code>123456</code>):</p>
+                <div class="p-3 rounded-3" style="background-color: #FAF7F2; border: 1px solid var(--border-subtle);">
+                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                        <i class="bi bi-stars" style="color: var(--accent-caramel);"></i>
+                        <span class="small fw-bold text-dark">Chọn nhanh tài khoản Demo (5 Role)</span>
+                    </div>
+                    <p class="text-muted small text-center mb-3" style="font-size: 0.78rem;">
+                        Nhấn nút để điền nhanh SĐT & Mật khẩu chung (<code>123456</code>):
+                    </p>
+
                     <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-danger text-start d-flex justify-content-between align-items-center" onclick="fillDemo('0901000001', '123456')">
-                            <span><span class="badge bg-danger me-2">Admin</span> Nguyễn Quản Trị</span>
-                            <small class="text-muted">0901000001</small>
+                        <button type="button" class="btn btn-sm btn-white text-start d-flex justify-content-between align-items-center border shadow-2xs rounded-3 p-2"
+                                onclick="fillDemo('0901000001', '123456')">
+                            <span><span class="badge rounded-pill bg-danger me-2">Admin</span> Nguyễn Quản Trị</span>
+                            <small class="text-muted font-monospace">0901000001</small>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-primary text-start d-flex justify-content-between align-items-center" onclick="fillDemo('0901000002', '123456')">
-                            <span><span class="badge bg-primary me-2">Cashier</span> Trần Thu Ngân</span>
-                            <small class="text-muted">0901000002</small>
+                        <button type="button" class="btn btn-sm btn-white text-start d-flex justify-content-between align-items-center border shadow-2xs rounded-3 p-2"
+                                onclick="fillDemo('0901000002', '123456')">
+                            <span><span class="badge rounded-pill me-2" style="background-color: var(--primary-green);">Cashier</span> Trần Thu Ngân</span>
+                            <small class="text-muted font-monospace">0901000002</small>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-warning text-dark text-start d-flex justify-content-between align-items-center" onclick="fillDemo('0901000003', '123456')">
-                            <span><span class="badge bg-warning text-dark me-2">Barista</span> Lê Pha Chế</span>
-                            <small class="text-muted">0901000003</small>
+                        <button type="button" class="btn btn-sm btn-white text-start d-flex justify-content-between align-items-center border shadow-2xs rounded-3 p-2"
+                                onclick="fillDemo('0901000003', '123456')">
+                            <span><span class="badge rounded-pill me-2" style="background-color: var(--accent-caramel);">Barista</span> Lê Pha Chế</span>
+                            <small class="text-muted font-monospace">0901000003</small>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-info text-dark text-start d-flex justify-content-between align-items-center" onclick="fillDemo('0901000004', '123456')">
-                            <span><span class="badge bg-info text-dark me-2">DeliveryStaff</span> Phạm Giao Hàng</span>
-                            <small class="text-muted">0901000004</small>
+                        <button type="button" class="btn btn-sm btn-white text-start d-flex justify-content-between align-items-center border shadow-2xs rounded-3 p-2"
+                                onclick="fillDemo('0901000004', '123456')">
+                            <span><span class="badge rounded-pill bg-info text-dark me-2">Shipper</span> Phạm Giao Hàng</span>
+                            <small class="text-muted font-monospace">0901000004</small>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-success text-start d-flex justify-content-between align-items-center" onclick="fillDemo('0988888888', '123456')">
-                            <span><span class="badge bg-success me-2">Customer</span> Đặng Minh Hiếu (150đ)</span>
-                            <small class="text-muted">0988888888</small>
+                        <button type="button" class="btn btn-sm btn-white text-start d-flex justify-content-between align-items-center border shadow-2xs rounded-3 p-2"
+                                onclick="fillDemo('0988888888', '123456')">
+                            <span><span class="badge rounded-pill bg-success me-2">Customer</span> Đặng Minh Hiếu (150đ)</span>
+                            <small class="text-muted font-monospace">0988888888</small>
                         </button>
                     </div>
                 </div>

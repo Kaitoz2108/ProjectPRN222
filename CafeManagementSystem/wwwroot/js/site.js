@@ -1,5 +1,5 @@
 // =========================================================================
-// CAFÉ MANAGEMENT SYSTEM - CLIENT SIDE SCRIPTS
+// LAURA CAFÉ MANAGEMENT SYSTEM - CLIENT SIDE SCRIPTS
 // Tự động đóng thông báo (Alerts) sau 3 - 5 giây
 // =========================================================================
 

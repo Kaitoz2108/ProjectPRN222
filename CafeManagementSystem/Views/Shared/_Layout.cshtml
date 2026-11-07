@@ -1,293 +1,370 @@
 @using System.Security.Claims
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    var currentCtrl = (ViewContext.RouteData.Values["controller"]?.ToString() ?? "").ToLower();
+    var currentAct = (ViewContext.RouteData.Values["action"]?.ToString() ?? "").ToLower();
+    var roleName = User.FindFirstValue(ClaimTypes.Role) ?? "";
+    bool isStaffOrAdmin = User.Identity != null && User.Identity.IsAuthenticated && 
+        (User.IsInRole("Admin") || User.IsInRole("Cashier") || User.IsInRole("Barista") || User.IsInRole("DeliveryStaff"));
+    bool isAuthPage = currentCtrl == "account" && (currentAct == "login" || currentAct == "register");
+
+    // Tính giỏ hàng cho Customer
+    int cartCount = 0;
+    if (User.IsInRole("Customer") || !isStaffOrAdmin)
+    {
+        var cartJson = HttpContextAccessor.HttpContext?.Session?.GetString("CustomerCart_Items");
+        if (!string.IsNullOrEmpty(cartJson))
+        {
+            try
+            {
+                var items = System.Text.Json.JsonSerializer.Deserialize<List<CafeManagementSystem.Models.ViewModels.CustomerCartItem>>(cartJson);
+                cartCount = items?.Sum(i => i.Quantity) ?? 0;
+            }
+            catch { }
+        }
+    }
+
+    string userInitials = "U";
+    if (User.Identity != null && !string.IsNullOrEmpty(User.Identity.Name))
+    {
+        var parts = User.Identity.Name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        userInitials = parts.Length >= 2 
+            ? $"{parts[0][0]}{parts[^1][0]}".ToUpper() 
+            : User.Identity.Name[..Math.Min(2, User.Identity.Name.Length)].ToUpper();
+    }
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Café Management System (CMS)</title>
+    <title>@ViewData["Title"] - Laura Café Management System</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="~/images/cafe-logo.svg" />
+    <link rel="shortcut icon" href="~/favicon.ico" />
     <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Design System CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/CafeManagementSystem.styles.css" asp-append-version="true" />
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc;
-            color: #334155;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        main {
-            flex: 1;
-        }
-        .navbar-brand {
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .nav-link {
-            font-weight: 500;
-            padding: 0.5rem 0.85rem !important;
-            border-radius: 6px;
-            transition: all 0.2s ease-in-out;
-        }
-        .nav-link:hover, .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.15);
-        }
-        .card {
-            border-radius: 10px;
-        }
-    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-            <div class="container-fluid px-lg-4">
-                <a class="navbar-brand text-warning d-flex align-items-center" asp-controller="Account" asp-action="Login">
-                    <i class="bi bi-cup-hot-fill fs-4 me-2"></i>
-                    <span>CAFÉ CMS</span>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
 
-                <div class="collapse navbar-collapse" id="mainNavbar">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
-                        {
-                            @* 1. MENU CHO ROLE ADMIN *@
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Admin" asp-action="Dashboard">
-                                        <i class="bi bi-speedometer2 me-1 text-danger"></i> Báo Cáo Doanh Thu
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Admin" asp-action="Products">
-                                        <i class="bi bi-cup-straw me-1 text-warning"></i> Quản Lý Thực Đơn
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Admin" asp-action="Inventory">
-                                        <i class="bi bi-boxes me-1 text-info"></i> Quản Lý Kho & Nhập Kho
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Admin" asp-action="StaffSchedule">
-                                        <i class="bi bi-people me-1 text-primary"></i> Nhân Sự & Lịch Ca
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Admin" asp-action="Complaints">
-                                        <i class="bi bi-chat-left-dots me-1 text-success"></i> Xử Lý Khiếu Nại
-                                    </a>
-                                </li>
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle text-white-50" href="#" id="adminOpsMenu" role="button" data-bs-toggle="dropdown">
-                                        <i class="bi bi-grid me-1"></i> Màn Hình Quầy
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" asp-controller="Cashier" asp-action="POS"><i class="bi bi-cart3 me-1"></i> Bán Hàng POS</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Cashier" asp-action="Shift"><i class="bi bi-cash-stack me-1"></i> Giám Sát Ca</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Barista" asp-action="KDS"><i class="bi bi-cup-hot me-1"></i> Bếp Pha Chế (KDS)</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Barista" asp-action="Wastage"><i class="bi bi-box-seam me-1"></i> Báo Hao Hụt</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Delivery" asp-action="Index"><i class="bi bi-bicycle me-1"></i> Đơn Giao & COD</a></li>
-                                    </ul>
-                                </li>
-                            }
+@if (isStaffOrAdmin)
+{
+    @* =========================================================================
+       STAFF & ADMIN LAYOUT: Deep Sage Green Sidebar + Warm Cream Main Area (Photos 2 & 3)
+       ========================================================================= *@
+    <div class="cafe-app-wrapper">
+        <!-- Sidebar -->
+        <aside class="cafe-sidebar d-flex flex-column" id="appSidebar">
+            <!-- Brand Logo -->
+            <a class="cafe-sidebar-brand" asp-controller="@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Cashier") ? "Cashier" : User.IsInRole("Barista") ? "Barista" : "Delivery")" asp-action="@(User.IsInRole("Admin") ? "Dashboard" : User.IsInRole("Cashier") ? "POS" : User.IsInRole("Barista") ? "KDS" : "Index")">
+                <svg class="cafe-brand-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.08 14.88C1.52 11.23 2.74 7.42 5.56 4.6C8.38 1.78 12.19 0.56 15.84 1.12C16.89 1.28 17.84 1.84 18.5 2.68C19.86 4.41 19.34 6.89 17.65 8.58C16.48 9.75 14.85 10.45 13.15 10.74C10.66 11.17 8.35 12.35 6.64 14.06C5.46 15.24 3.79 16.03 2.08 14.88ZM21.92 9.12C22.48 12.77 21.26 16.58 18.44 19.4C15.62 22.22 11.81 23.44 8.16 22.88C7.11 22.72 6.16 22.16 5.5 21.32C4.14 19.59 4.66 17.11 6.35 15.42C7.52 14.25 9.15 13.55 10.85 13.26C13.34 12.83 15.65 11.65 17.36 9.94C18.54 8.76 20.21 7.97 21.92 9.12Z"/>
+                </svg>
+                <div class="d-flex flex-column" style="line-height: 1.15;">
+                    <span class="fw-bold" style="font-size: 1.15rem; letter-spacing: -0.3px;">Laura Café</span>
+                    <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.8; font-weight: 600;">Management System</span>
+                </div>
+            </a>
 
-                            @* 2. MENU CHO ROLE CASHIER *@
-                            @if (User.IsInRole("Cashier"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Cashier" asp-action="POS">
-                                        <i class="bi bi-calculator me-1 text-primary"></i> Bán Hàng Tại Quầy (POS)
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Cashier" asp-action="Shift">
-                                        <i class="bi bi-clock-history me-1 text-warning"></i> Quản Lý Ca & Bàn Giao
-                                    </a>
-                                </li>
-                            }
+            <!-- Nav section title -->
+            <div class="cafe-sidebar-section-title">
+                @(User.IsInRole("Admin") ? "QUẢN TRỊ" : User.IsInRole("Cashier") ? "THU NGÂN" : User.IsInRole("Barista") ? "PHA CHẾ" : "GIAO VẬN")
+            </div>
 
-                            @* 3. MENU CHO ROLE BARISTA *@
-                            @if (User.IsInRole("Barista"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Barista" asp-action="KDS">
-                                        <i class="bi bi-cup-hot-fill me-1 text-warning"></i> Màn Hình Pha Chế (KDS)
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white-50" asp-controller="Barista" asp-action="Wastage">
-                                        <i class="bi bi-box-seam me-1"></i> Kho Quầy Bar & Báo Hao Hụt
-                                    </a>
-                                </li>
-                            }
+            <!-- Navigation Links -->
+            <nav class="cafe-sidebar-nav">
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="cafe-sidebar-link @(currentCtrl == "admin" && currentAct == "dashboard" ? "active" : "")" 
+                       asp-controller="Admin" asp-action="Dashboard">
+                        <i class="bi bi-bar-chart-line-fill"></i>
+                        <span>Báo cáo</span>
+                    </a>
+                    <a class="cafe-sidebar-link @(currentCtrl == "admin" && currentAct == "products" ? "active" : "")" 
+                       asp-controller="Admin" asp-action="Products">
+                        <i class="bi bi-cup-hot"></i>
+                        <span>Thực đơn</span>
+                    </a>
+                    <a class="cafe-sidebar-link @(currentCtrl == "admin" && currentAct == "inventory" ? "active" : "")" 
+                       asp-controller="Admin" asp-action="Inventory">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Kho nguyên liệu</span>
+                    </a>
+                    <a class="cafe-sidebar-link @(currentCtrl == "admin" && currentAct == "staffschedule" ? "active" : "")" 
+                       asp-controller="Admin" asp-action="StaffSchedule">
+                        <i class="bi bi-people"></i>
+                        <span>Nhân sự & lịch ca</span>
+                    </a>
+                    <a class="cafe-sidebar-link @(currentCtrl == "admin" && currentAct == "complaints" ? "active" : "")" 
+                       asp-controller="Admin" asp-action="Complaints">
+                        <i class="bi bi-chat-dots"></i>
+                        <span>Khiếu nại</span>
+                    </a>
 
-                            @* 4. MENU CHO ROLE DELIVERYSTAFF *@
-                            @if (User.IsInRole("DeliveryStaff"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Delivery" asp-action="Index">
-                                        <i class="bi bi-bicycle me-1 text-info"></i> Đơn Giao & Thu COD
-                                    </a>
-                                </li>
-                            }
+                    <div class="cafe-sidebar-divider"></div>
 
-                            @* 5. MENU CHO ROLE CUSTOMER *@
-                            @if (User.IsInRole("Customer"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Customer" asp-action="Menu">
-                                        <i class="bi bi-cup-straw me-1 text-success"></i> Thực Đơn Đồ Uống
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Customer" asp-action="Cart">
-                                        <i class="bi bi-cart3 me-1 text-warning"></i> Giỏ Hàng Online
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Customer" asp-action="MyOrders">
-                                        <i class="bi bi-clock-history me-1 text-info"></i> Đơn Hàng Của Tôi
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" asp-controller="Customer" asp-action="Complaints">
-                                        <i class="bi bi-chat-dots me-1 text-danger"></i> Khiếu Nại & Góp Ý
-                                    </a>
-                                </li>
-                            }
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-white-50" asp-controller="Account" asp-action="Login">
-                                    <i class="bi bi-house me-1"></i> Trang Chủ
-                                </a>
-                            </li>
-                        }
-                    </ul>
+                    <div class="dropdown">
+                        <a class="cafe-sidebar-link dropdown-toggle" href="#" id="sidebarOpsDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-display"></i>
+                            <span>Màn hình quầy</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark shadow border-0" aria-labelledby="sidebarOpsDrop">
+                            <li><a class="dropdown-item py-2" asp-controller="Cashier" asp-action="POS"><i class="bi bi-cart3 me-2 text-warning"></i>Bán Hàng POS</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Cashier" asp-action="Shift"><i class="bi bi-clock-history me-2 text-info"></i>Giám Sát Ca</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Barista" asp-action="KDS"><i class="bi bi-cup-hot me-2 text-danger"></i>Màn Hình KDS</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Barista" asp-action="Wastage"><i class="bi bi-box-seam me-2 text-secondary"></i>Báo Hao Hụt</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Delivery" asp-action="Index"><i class="bi bi-bicycle me-2 text-success"></i>Đơn Giao & COD</a></li>
+                        </ul>
+                    </div>
+                }
 
-                    <!-- Khu vực người dùng bên phải -->
-                    <ul class="navbar-nav ms-auto align-items-center">
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
-                        {
-                            var roleName = User.FindFirstValue(ClaimTypes.Role) ?? "";
-                            string roleBadgeClass = roleName switch
-                            {
-                                "Admin" => "bg-danger",
-                                "Cashier" => "bg-primary",
-                                "Barista" => "bg-warning text-dark",
-                                "DeliveryStaff" => "bg-info text-dark",
-                                _ => "bg-success"
-                            };
+                @if (User.IsInRole("Cashier"))
+                {
+                    <a class="cafe-sidebar-link @(currentCtrl == "cashier" && currentAct == "pos" ? "active" : "")" 
+                       asp-controller="Cashier" asp-action="POS">
+                        <i class="bi bi-cart3"></i>
+                        <span>Bán hàng POS</span>
+                    </a>
+                    <a class="cafe-sidebar-link @(currentCtrl == "cashier" && currentAct == "shift" ? "active" : "")" 
+                       asp-controller="Cashier" asp-action="Shift">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Quản lý ca & két</span>
+                    </a>
+                }
 
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-white d-flex align-items-center gap-2" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-person-circle fs-5"></i>
-                                    <span>@User.Identity.Name</span>
-                                    <span class="badge @roleBadgeClass ms-1">@roleName</span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userMenu">
-                                    <li>
-                                        <div class="px-3 py-1">
-                                            <small class="text-muted d-block">Vai trò hiện tại</small>
-                                            <strong>@roleName</strong>
-                                        </div>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
-                                            <i class="bi bi-person me-2"></i> Hồ sơ cá nhân
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
-                                            <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item me-2">
-                                <a class="btn btn-sm btn-outline-light" asp-controller="Account" asp-action="Login">
-                                    <i class="bi bi-box-arrow-in-right me-1"></i> Đăng Nhập
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-sm btn-warning text-dark fw-semibold" asp-controller="Account" asp-action="Register">
-                                    <i class="bi bi-person-plus me-1"></i> Đăng Ký Khách
-                                </a>
-                            </li>
-                        }
+                @if (User.IsInRole("Barista"))
+                {
+                    <a class="cafe-sidebar-link @(currentCtrl == "barista" && currentAct == "kds" ? "active" : "")" 
+                       asp-controller="Barista" asp-action="KDS">
+                        <i class="bi bi-cup-hot-fill"></i>
+                        <span>Bếp pha chế (KDS)</span>
+                    </a>
+                    <a class="cafe-sidebar-link @(currentCtrl == "barista" && currentAct == "wastage" ? "active" : "")" 
+                       asp-controller="Barista" asp-action="Wastage">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Kho & Báo hao hụt</span>
+                    </a>
+                }
+
+                @if (User.IsInRole("DeliveryStaff"))
+                {
+                    <a class="cafe-sidebar-link @(currentCtrl == "delivery" ? "active" : "")" 
+                       asp-controller="Delivery" asp-action="Index">
+                        <i class="bi bi-bicycle"></i>
+                        <span>Đơn giao & COD</span>
+                    </a>
+                }
+            </nav>
+
+            <!-- Bottom User Profile Pill (Photo 3) -->
+            <div class="cafe-sidebar-footer">
+                <div class="dropdown dropup">
+                    <a class="cafe-sidebar-user d-flex align-items-center justify-content-between" href="#" id="sidebarUserDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="d-flex align-items-center gap-2 text-truncate">
+                            <div class="cafe-sidebar-avatar">@userInitials</div>
+                            <div class="text-truncate" style="max-width: 140px;">
+                                <div class="fw-bold small text-white text-truncate">@(User.Identity?.Name ?? "Người dùng")</div>
+                                <div style="font-size: 0.72rem; color: var(--sidebar-text-muted);">@roleName</div>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right small opacity-75"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow border-0" aria-labelledby="sidebarUserDrop">
+                        <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Profile"><i class="bi bi-person me-2"></i>Hồ sơ cá nhân</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-danger" asp-controller="Account" asp-action="Logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
                     </ul>
                 </div>
             </div>
-        </nav>
-    </header>
+        </aside>
 
-    <!-- Global Flash Messages (TempData) -->
-    <div class="container-fluid px-lg-4 mt-3" id="globalAlertContainer">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <!-- Main Content Area -->
+        <div class="cafe-main-content">
+            <!-- Mobile Toggle Bar -->
+            <div class="d-lg-none bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center">
+                <button class="btn btn-sm btn-cafe-outline" type="button" data-bs-toggle="collapse" data-bs-target="#appSidebar">
+                    <i class="bi bi-list fs-5"></i> Menu
+                </button>
+                <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                    <svg class="cafe-brand-icon" viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px; color: var(--primary-green);">
+                        <path d="M2.08 14.88C1.52 11.23 2.74 7.42 5.56 4.6C8.38 1.78 12.19 0.56 15.84 1.12C16.89 1.28 17.84 1.84 18.5 2.68C19.86 4.41 19.34 6.89 17.65 8.58C16.48 9.75 14.85 10.45 13.15 10.74C10.66 11.17 8.35 12.35 6.64 14.06C5.46 15.24 3.79 16.03 2.08 14.88ZM21.92 9.12C22.48 12.77 21.26 16.58 18.44 19.4C15.62 22.22 11.81 23.44 8.16 22.88C7.11 22.72 6.16 22.16 5.5 21.32C4.14 19.59 4.66 17.11 6.35 15.42C7.52 14.25 9.15 13.55 10.85 13.26C13.34 12.83 15.65 11.65 17.36 9.94C18.54 8.76 20.21 7.97 21.92 9.12Z"/>
+                    </svg>
+                    <span>Laura Café</span>
+                </div>
+                <div class="cafe-sidebar-avatar" style="width: 28px; height: 28px; font-size: 0.75rem;">@userInitials</div>
             </div>
-        }
-        @if (TempData["OperationsSuccess"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> @TempData["OperationsSuccess"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
-        @if (TempData["WarningMessage"] != null)
-        {
-            <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i> @TempData["WarningMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        }
-    </div>
 
-    <!-- Main Body Content -->
-    <main role="main" class="pb-4">
-        @RenderBody()
-    </main>
+            <!-- Global Alert Container -->
+            <div class="container-fluid px-4 mt-3" id="globalAlertContainer">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["OperationsSuccess"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> @TempData["OperationsSuccess"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["WarningMessage"] != null)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i> @TempData["WarningMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+            </div>
 
-    <footer class="bg-white border-top py-3 text-muted text-center small mt-auto">
-        <div class="container-fluid">
-            <span>&copy; 2026 Café Management System (CMS) - Nhóm 5 người - PRN222</span>
-            <span class="mx-2">|</span>
-            <span>ASP.NET Core 8.0 MVC Thuần</span>
+            <!-- Render Main View Content -->
+            <main class="cafe-app-body">
+                @RenderBody()
+            </main>
         </div>
-    </footer>
+    </div>
+}
+else
+{
+    @* =========================================================================
+       CUSTOMER & PUBLIC LAYOUT: Warm Ivory Header + Warm Cream Body (Photo 1)
+       ========================================================================= *@
+    <div class="d-flex flex-column min-vh-100">
+        <!-- Top Navbar -->
+        <header class="cafe-customer-topbar">
+            <div class="container py-2" style="max-width: 1180px;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <!-- Brand -->
+                    <a class="cafe-customer-brand" asp-controller="Customer" asp-action="Menu">
+                        <svg class="cafe-brand-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.08 14.88C1.52 11.23 2.74 7.42 5.56 4.6C8.38 1.78 12.19 0.56 15.84 1.12C16.89 1.28 17.84 1.84 18.5 2.68C19.86 4.41 19.34 6.89 17.65 8.58C16.48 9.75 14.85 10.45 13.15 10.74C10.66 11.17 8.35 12.35 6.64 14.06C5.46 15.24 3.79 16.03 2.08 14.88ZM21.92 9.12C22.48 12.77 21.26 16.58 18.44 19.4C15.62 22.22 11.81 23.44 8.16 22.88C7.11 22.72 6.16 22.16 5.5 21.32C4.14 19.59 4.66 17.11 6.35 15.42C7.52 14.25 9.15 13.55 10.85 13.26C13.34 12.83 15.65 11.65 17.36 9.94C18.54 8.76 20.21 7.97 21.92 9.12Z"/>
+                        </svg>
+                        <div class="d-flex flex-column" style="line-height: 1.15;">
+                            <span class="fw-bold" style="font-size: 1.15rem; letter-spacing: -0.3px;">Laura Café</span>
+                            <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.75; font-weight: 600; color: var(--text-muted);">Management System</span>
+                        </div>
+                    </a>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+                    @if (!isAuthPage)
+                    {
+                        <!-- Nav Center (Desktop) -->
+                        <nav class="d-none d-md-flex align-items-center gap-1">
+                            <a class="cafe-nav-link @(currentCtrl == "customer" && currentAct == "menu" ? "active" : "")" 
+                               asp-controller="Customer" asp-action="Menu">
+                                <i class="bi bi-cup-straw me-1"></i>Thực đơn
+                            </a>
+                            <a class="cafe-nav-link @(currentCtrl == "customer" && currentAct == "myorders" ? "active" : "")" 
+                               asp-controller="Customer" asp-action="MyOrders">
+                                <i class="bi bi-clock-history me-1"></i>Đơn hàng của tôi
+                            </a>
+                            <a class="cafe-nav-link @(currentCtrl == "customer" && currentAct == "complaints" ? "active" : "")" 
+                               asp-controller="Customer" asp-action="Complaints">
+                                <i class="bi bi-chat-heart me-1"></i>Khiếu nại & góp ý
+                            </a>
+                        </nav>
+
+                        <!-- Right Actions: Cart & User Account -->
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- Cart Button (Photo 1) -->
+                            <a asp-controller="Customer" asp-action="Cart" class="btn-cafe-primary shadow-sm text-decoration-none">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                <span class="d-none d-sm-inline">Giỏ hàng</span>
+                                <span class="badge bg-white text-dark rounded-pill fw-bold ms-1 px-2" style="font-size: 0.75rem;">@cartCount</span>
+                            </a>
+
+                            @if (User.Identity != null && User.Identity.IsAuthenticated)
+                            {
+                                <div class="dropdown">
+                                    <a class="btn-cafe-outline d-flex align-items-center gap-2 text-decoration-none" href="#" id="custUserMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <div class="cafe-sidebar-avatar" style="width: 26px; height: 26px; font-size: 0.75rem; background-color: var(--primary-green);">@userInitials</div>
+                                        <span class="d-none d-sm-inline fw-semibold">@User.Identity.Name</span>
+                                        <i class="bi bi-chevron-down small"></i>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2" aria-labelledby="custUserMenu">
+                                        <li>
+                                            <div class="px-3 py-2 border-bottom">
+                                                <div class="small text-muted">Xin chào,</div>
+                                                <div class="fw-bold">@User.Identity.Name</div>
+                                            </div>
+                                        </li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Profile"><i class="bi bi-person me-2"></i>Hồ sơ cá nhân</a></li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Customer" asp-action="MyOrders"><i class="bi bi-receipt me-2"></i>Lịch sử đơn hàng</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item py-2 text-danger" asp-controller="Account" asp-action="Logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                                    </ul>
+                                </div>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" class="btn-cafe-outline text-decoration-none">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </header>
+
+        <!-- Global Alert Container -->
+        <div class="container px-4 mt-3" id="globalAlertContainer">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["WarningMessage"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> @TempData["WarningMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+        </div>
+
+        <!-- Main Body -->
+        <main class="flex-grow-1">
+            @RenderBody()
+        </main>
+
+        <!-- Warm Café Footer -->
+        <footer class="bg-white border-top py-3 text-muted text-center small mt-auto">
+            <div class="container">
+                <span>&copy; 2026 Laura Café Management System — Hệ Thống Quản Lý & Đặt Hàng Cà Phê Trực Tuyến</span>
+            </div>
+        </footer>
+    </div>
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

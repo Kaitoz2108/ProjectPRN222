@@ -1,43 +1,296 @@
 @model AdminStaffScheduleViewModel
-@{ ViewData["Title"] = "Nhân sự, phân ca & chấm công"; }
-<div class="d-flex flex-wrap justify-content-between gap-2 mb-4"><h1 class="h3">Nhân sự, phân ca & chấm công</h1><nav><a asp-action="Dashboard" class="btn btn-outline-primary">Dashboard</a> <a asp-action="Complaints" class="btn btn-outline-primary">Khiếu nại</a></nav></div>
-
-<div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
-<div class="row g-4 mb-4"><section class="col-lg-6"><div class="card card-body h-100"><h2 class="h5">Thêm tài khoản nhân viên</h2>
-<form asp-action="CreateStaff" method="post" class="row g-3">
-<div class="col-md-6"><label asp-for="NewStaff.FullName" class="form-label">Họ tên</label><input asp-for="NewStaff.FullName" class="form-control" maxlength="100" required /></div>
-<div class="col-md-6"><label asp-for="NewStaff.Phone" class="form-label">Điện thoại đăng nhập</label><input asp-for="NewStaff.Phone" class="form-control" maxlength="20" required /></div>
-<div class="col-md-6"><label asp-for="NewStaff.Email" class="form-label">Email</label><input asp-for="NewStaff.Email" type="email" class="form-control" maxlength="100" /></div>
-<div class="col-md-6"><label asp-for="NewStaff.Password" class="form-label">Mật khẩu (ít nhất 8 ký tự)</label><input asp-for="NewStaff.Password" class="form-control" autocomplete="new-password" minlength="8" maxlength="100" required /></div>
-<div class="col-md-6"><label asp-for="NewStaff.Role" class="form-label">Vai trò</label><select asp-for="NewStaff.Role" class="form-select"><option value="Cashier">Cashier</option><option value="Barista">Barista</option><option value="DeliveryStaff">DeliveryStaff</option></select></div>
-<div class="col-md-6 align-self-end"><div class="form-check"><input asp-for="NewStaff.IsActive" class="form-check-input" /><label asp-for="NewStaff.IsActive" class="form-check-label">Đang làm việc</label></div></div>
-<div class="col-12"><button class="btn btn-primary">Tạo nhân viên</button></div></form></div></section>
-<section class="col-lg-6"><div class="card card-body h-100"><h2 class="h5">Phân ca làm việc</h2><form asp-action="CreateSchedule" method="post" class="row g-3">
-<div class="col-12"><label asp-for="NewSchedule.StaffId" class="form-label">Nhân viên</label><select asp-for="NewSchedule.StaffId" class="form-select" required><option value="">Chọn nhân viên đang làm việc</option>@foreach (var staff in Model.Staff.Where(x => x.IsActive)) { <option value="@staff.UserId">@staff.FullName — @staff.Role.RoleName</option> }</select></div>
-<div class="col-md-5"><label asp-for="NewSchedule.WorkDate" class="form-label">Ngày làm việc</label><input asp-for="NewSchedule.WorkDate" type="date" class="form-control" required /></div>
-<div class="col-md-7"><label asp-for="NewSchedule.ShiftName" class="form-label">Khung giờ cố định</label><select asp-for="NewSchedule.ShiftName" class="form-select"><option value="Morning">Ca Sáng 07:00–12:00</option><option value="Afternoon">Ca Chiều 12:00–17:00</option><option value="Evening">Ca Tối 17:00–22:00</option></select></div>
-<div class="col-12"><label asp-for="NewSchedule.Note" class="form-label">Ghi chú</label><input asp-for="NewSchedule.Note" class="form-control" maxlength="255" /></div><div class="col-12"><button class="btn btn-primary">Lưu lịch & tạo chấm công</button></div></form></div></section></div>
-<section class="card card-body mb-4"><h2 class="h5">Danh sách nhân viên</h2><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Nhân viên</th><th>Liên hệ</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>
-@foreach (var staff in Model.Staff) { <tr><td>@staff.FullName</td><td>@staff.Phone<br />@staff.Email</td><td>@staff.Role.RoleName</td><td><span class="badge @(staff.IsActive ? "bg-success" : "bg-secondary")">@(staff.IsActive ? "Đang làm việc" : "Ngừng làm việc")</span></td><td><form asp-action="SetStaffActive" method="post"><input type="hidden" name="staffId" value="@staff.UserId" /><input type="hidden" name="isActive" value="@((!staff.IsActive).ToString().ToLowerInvariant())" /><button class="btn btn-sm btn-outline-secondary">@(staff.IsActive ? "Ngừng làm việc" : "Kích hoạt")</button></form></td></tr> }
-@if (Model.Staff.Count == 0) { <tr><td colspan="5">Chưa có nhân viên.</td></tr> }
-</tbody></table></div></section>
-<section class="card card-body mb-4"><h2 class="h5">Lịch phân ca</h2><div class="table-responsive"><table class="table"><thead><tr><th>Ngày</th><th>Nhân viên</th><th>Ca</th><th>Bắt đầu</th><th>Kết thúc</th><th>Ghi chú</th></tr></thead><tbody>
-@foreach (var item in Model.Schedules) { <tr><td>@item.WorkDate.ToString("dd/MM/yyyy")</td><td>@item.Staff.FullName</td><td>@item.ShiftName</td><td>@item.StartTime.ToString("HH:mm")</td><td>@item.EndTime.ToString("HH:mm")</td><td>@item.Note</td></tr> }
-@if (Model.Schedules.Count == 0) { <tr><td colspan="6">Chưa có lịch phân ca.</td></tr> }
-</tbody></table></div></section>
-<section class="card card-body"><h2 class="h5">Theo dõi & cập nhật chấm công</h2><p class="text-muted">Pending = bản ghi mới, chưa chấm công. Giờ vào/ra sử dụng ngày và giờ địa phương của cửa hàng.</p><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Nhân viên / ca</th><th>Chấm công</th></tr></thead><tbody>
-@foreach (var item in Model.Attendances) {
-    var edit = Model.AttendanceEdit.AttendanceId == item.AttendanceId ? Model.AttendanceEdit : new AdminAttendanceInput { AttendanceId = item.AttendanceId, CheckInTime = item.CheckInTime, CheckOutTime = item.CheckOutTime, Status = item.Status, Note = item.Note };
-    <tr><td>@item.Staff.FullName<br />@item.Schedule.WorkDate.ToString("dd/MM/yyyy") — @item.Schedule.ShiftName<br /><span class="badge bg-secondary">@item.Status</span></td><td>
-    <form asp-action="UpdateAttendance" method="post" class="row g-2">
-    <input type="hidden" name="AttendanceEdit.AttendanceId" value="@item.AttendanceId" />
-    <div class="col-md-6"><label for="in-@item.AttendanceId" class="form-label">Giờ vào</label><input id="in-@item.AttendanceId" name="AttendanceEdit.CheckInTime" type="datetime-local" value="@edit.CheckInTime?.ToString("yyyy-MM-ddTHH:mm")" class="form-control" /></div>
-    <div class="col-md-6"><label for="out-@item.AttendanceId" class="form-label">Giờ ra</label><input id="out-@item.AttendanceId" name="AttendanceEdit.CheckOutTime" type="datetime-local" value="@edit.CheckOutTime?.ToString("yyyy-MM-ddTHH:mm")" class="form-control" /></div>
-    <div class="col-md-4"><label for="status-@item.AttendanceId" class="form-label">Trạng thái</label><select id="status-@item.AttendanceId" name="AttendanceEdit.Status" class="form-select" required>
-    @if (edit.Status == "Pending") { <option value="" selected>Chưa chấm công</option> }
-    @foreach (var status in new[] { "Present", "Late", "Absent", "Leave" }) { <option value="@status" selected="@(edit.Status == status)">@status</option> }
-    </select></div><div class="col-md-8"><label for="note-@item.AttendanceId" class="form-label">Ghi chú</label><input id="note-@item.AttendanceId" name="AttendanceEdit.Note" value="@edit.Note" maxlength="255" class="form-control" /></div>
-    <div class="col-12"><button class="btn btn-sm btn-primary">Cập nhật chấm công #@item.AttendanceId</button></div></form></td></tr>
+@{ 
+    ViewData["Title"] = "Nhân Sự, Phân Ca & Chấm Công"; 
 }
-@if (Model.Attendances.Count == 0) { <tr><td colspan="2">Chưa có bản ghi chấm công.</td></tr> }
-</tbody></table></div></section>
+
+<div class="container-fluid px-3 px-lg-4 py-3">
+    <!-- Header Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Nhân sự, phân ca & Chấm công</h2>
+            <p class="text-muted small mb-0">Quản lý hồ sơ nhân sự, lịch phân ca cố định và theo dõi chấm công hàng ngày</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Dashboard" class="btn btn-cafe-outline rounded-pill btn-sm d-inline-flex align-items-center gap-1">
+                <i class="bi bi-bar-chart-line"></i> Dashboard
+            </a>
+            <a asp-action="Complaints" class="btn btn-cafe-primary rounded-pill btn-sm d-inline-flex align-items-center gap-1 shadow-sm">
+                <i class="bi bi-chat-dots"></i> Khiếu nại
+            </a>
+        </div>
+    </div>
+
+    <div asp-validation-summary="All" class="alert alert-danger py-2 rounded-3 small" role="alert"></div>
+
+    <!-- Forms row: Tạo nhân viên & Phân ca -->
+    <div class="row g-4 mb-4">
+        <!-- Tạo tài khoản nhân viên -->
+        <section class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-person-plus me-2" style="color: var(--primary-green);"></i>Thêm Tài Khoản Nhân Viên
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="CreateStaff" method="post" class="row g-3">
+                        @Html.AntiForgeryToken()
+                        <div class="col-md-6">
+                            <label asp-for="NewStaff.FullName" class="form-label small fw-bold text-dark"></label> <span class="text-danger">*</span>
+                            <input asp-for="NewStaff.FullName" class="form-control form-control-sm" maxlength="100" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NewStaff.Phone" class="form-label small fw-bold text-dark"></label> <span class="text-danger">*</span>
+                            <input asp-for="NewStaff.Phone" class="form-control form-control-sm" maxlength="20" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NewStaff.Email" class="form-label small fw-bold text-dark"></label>
+                            <input asp-for="NewStaff.Email" type="email" class="form-control form-control-sm" maxlength="100" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NewStaff.Password" class="form-label small fw-bold text-dark"></label> <span class="text-danger">*</span>
+                            <input asp-for="NewStaff.Password" class="form-control form-control-sm" autocomplete="new-password" minlength="8" maxlength="100" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NewStaff.Role" class="form-label small fw-bold text-dark"></label>
+                            <select asp-for="NewStaff.Role" class="form-select form-select-sm">
+                                <option value="Cashier">Thu Ngân (Cashier)</option>
+                                <option value="Barista">Pha Chế (Barista)</option>
+                                <option value="DeliveryStaff">Giao Hàng (Shipper)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 align-self-end">
+                            <div class="form-check p-2 rounded border" style="background-color: #FAF7F2;">
+                                <input asp-for="NewStaff.IsActive" class="form-check-input ms-0 me-2" />
+                                <label asp-for="NewStaff.IsActive" class="form-check-label small fw-bold text-dark">Đang làm việc</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button class="btn btn-cafe-primary rounded-pill px-4 fw-bold">
+                                <i class="bi bi-check2 me-1"></i> Tạo Nhân Viên
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Phân ca làm việc -->
+        <section class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-calendar-plus me-2" style="color: var(--accent-caramel);"></i>Phân Ca Làm Việc
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="CreateSchedule" method="post" class="row g-3">
+                        @Html.AntiForgeryToken()
+                        <div class="col-12">
+                            <label asp-for="NewSchedule.StaffId" class="form-label small fw-bold text-dark">Nhân viên <span class="text-danger">*</span></label>
+                            <select asp-for="NewSchedule.StaffId" class="form-select form-select-sm" required>
+                                <option value="">-- Chọn nhân viên đang làm việc --</option>
+                                @foreach (var staff in Model.Staff.Where(x => x.IsActive))
+                                {
+                                    <option value="@staff.UserId">@staff.FullName — @staff.Role.RoleName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label asp-for="NewSchedule.WorkDate" class="form-label small fw-bold text-dark">Ngày làm việc <span class="text-danger">*</span></label>
+                            <input asp-for="NewSchedule.WorkDate" type="date" class="form-control form-control-sm" required />
+                        </div>
+                        <div class="col-md-7">
+                            <label asp-for="NewSchedule.ShiftName" class="form-label small fw-bold text-dark">Khung giờ ca</label>
+                            <select asp-for="NewSchedule.ShiftName" class="form-select form-select-sm">
+                                <option value="Morning">Ca Sáng (07:00 – 12:00)</option>
+                                <option value="Afternoon">Ca Chiều (12:00 – 17:00)</option>
+                                <option value="Evening">Ca Tối (17:00 – 22:00)</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="NewSchedule.Note" class="form-label small fw-bold text-dark">Ghi chú</label>
+                            <input asp-for="NewSchedule.Note" class="form-control form-control-sm" maxlength="255" placeholder="Ghi chú vị trí hoặc dặn dò ca..." />
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button class="btn btn-cafe-primary rounded-pill px-4 fw-bold">
+                                <i class="bi bi-save me-1"></i> Lưu Lịch & Tạo Chấm Công
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Danh sách nhân viên -->
+    <section class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" 
+             style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+        <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-people me-2" style="color: var(--primary-green);"></i>Danh Sách Nhân Viên (@Model.Staff.Count)
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                    <thead style="background-color: #F8F5EE;">
+                        <tr class="text-muted small">
+                            <th class="ps-3 py-2">Nhân viên</th>
+                            <th class="py-2">Liên hệ</th>
+                            <th class="py-2">Vai trò</th>
+                            <th class="py-2 text-center">Trạng thái</th>
+                            <th class="pe-3 py-2 text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var staff in Model.Staff)
+                        {
+                            <tr style="border-bottom: 1px solid var(--border-light);">
+                                <td class="ps-3 py-2 fw-semibold text-dark">@staff.FullName</td>
+                                <td class="py-2 small text-muted">@staff.Phone<br /><span class="opacity-75">@staff.Email</span></td>
+                                <td class="py-2"><span class="badge rounded-pill bg-light text-dark border">@staff.Role.RoleName</span></td>
+                                <td class="py-2 text-center">
+                                    <span class="cafe-badge @(staff.IsActive ? "cafe-badge-success" : "cafe-badge-neutral")">
+                                        @(staff.IsActive ? "Đang làm việc" : "Ngừng làm việc")
+                                    </span>
+                                </td>
+                                <td class="pe-3 py-2 text-end">
+                                    <form asp-action="SetStaffActive" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="staffId" value="@staff.UserId" />
+                                        <input type="hidden" name="isActive" value="@((!staff.IsActive).ToString().ToLowerInvariant())" />
+                                        <button class="btn btn-sm btn-cafe-outline rounded-pill py-1 px-3 small">
+                                            @(staff.IsActive ? "Ngừng làm việc" : "Kích hoạt lại")
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        @if (Model.Staff.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-center text-muted py-4">Chưa có nhân viên nào.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lịch phân ca -->
+    <section class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" 
+             style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+        <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-calendar3 me-2" style="color: var(--accent-caramel);"></i>Lịch Phân Ca Làm Việc (@Model.Schedules.Count)
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                    <thead style="background-color: #F8F5EE;" class="sticky-top">
+                        <tr class="text-muted small">
+                            <th class="ps-3 py-2">Ngày</th>
+                            <th class="py-2">Nhân viên</th>
+                            <th class="py-2">Ca</th>
+                            <th class="py-2">Bắt đầu</th>
+                            <th class="py-2">Kết thúc</th>
+                            <th class="pe-3 py-2">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Schedules)
+                        {
+                            <tr style="border-bottom: 1px solid var(--border-light);">
+                                <td class="ps-3 py-2 fw-semibold text-dark">@item.WorkDate.ToString("dd/MM/yyyy")</td>
+                                <td class="py-2">@item.Staff.FullName</td>
+                                <td class="py-2"><span class="badge rounded-pill bg-light text-dark border">@item.ShiftName</span></td>
+                                <td class="py-2 text-muted small">@item.StartTime.ToString("HH:mm")</td>
+                                <td class="py-2 text-muted small">@item.EndTime.ToString("HH:mm")</td>
+                                <td class="pe-3 py-2 small text-muted">@item.Note</td>
+                            </tr>
+                        }
+                        @if (Model.Schedules.Count == 0)
+                        {
+                            <tr><td colspan="6" class="text-center text-muted py-4">Chưa có lịch phân ca.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Theo dõi & cập nhật chấm công -->
+    <section class="card border-0 shadow-sm rounded-4 overflow-hidden" 
+             style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+        <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-clock me-2" style="color: var(--primary-green);"></i>Theo Dõi & Cập Nhật Chấm Công (@Model.Attendances.Count)
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                    <thead style="background-color: #F8F5EE;">
+                        <tr class="text-muted small">
+                            <th class="ps-3 py-2" style="width: 250px;">Nhân viên & Ca</th>
+                            <th class="pe-3 py-2">Cập nhật giờ vào / ra & Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Attendances)
+                        {
+                            var edit = Model.AttendanceEdit.AttendanceId == item.AttendanceId ? Model.AttendanceEdit : new AdminAttendanceInput { AttendanceId = item.AttendanceId, CheckInTime = item.CheckInTime, CheckOutTime = item.CheckOutTime, Status = item.Status, Note = item.Note };
+                            <tr style="border-bottom: 1px solid var(--border-light);">
+                                <td class="ps-3 py-3">
+                                    <div class="fw-bold text-dark">@item.Staff.FullName</div>
+                                    <div class="small text-muted">@item.Schedule.WorkDate.ToString("dd/MM/yyyy") — @item.Schedule.ShiftName</div>
+                                    <span class="cafe-badge cafe-badge-neutral mt-1">@item.Status</span>
+                                </td>
+                                <td class="pe-3 py-3">
+                                    <form asp-action="UpdateAttendance" method="post" class="row g-2 align-items-end">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="AttendanceEdit.AttendanceId" value="@item.AttendanceId" />
+                                        <div class="col-md-3">
+                                            <label for="in-@item.AttendanceId" class="form-label small text-muted mb-1">Giờ vào</label>
+                                            <input id="in-@item.AttendanceId" name="AttendanceEdit.CheckInTime" type="datetime-local" value="@edit.CheckInTime?.ToString("yyyy-MM-ddTHH:mm")" class="form-control form-control-sm" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="out-@item.AttendanceId" class="form-label small text-muted mb-1">Giờ ra</label>
+                                            <input id="out-@item.AttendanceId" name="AttendanceEdit.CheckOutTime" type="datetime-local" value="@edit.CheckOutTime?.ToString("yyyy-MM-ddTHH:mm")" class="form-control form-control-sm" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label for="status-@item.AttendanceId" class="form-label small text-muted mb-1">Trạng thái</label>
+                                            <select id="status-@item.AttendanceId" name="AttendanceEdit.Status" class="form-select form-select-sm" required>
+                                                @if (edit.Status == "Pending") { <option value="" selected>Chưa chấm</option> }
+                                                @foreach (var status in new[] { "Present", "Late", "Absent", "Leave" })
+                                                {
+                                                    <option value="@status" selected="@(edit.Status == status)">@status</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="note-@item.AttendanceId" class="form-label small text-muted mb-1">Ghi chú</label>
+                                            <input id="note-@item.AttendanceId" name="AttendanceEdit.Note" value="@edit.Note" maxlength="255" class="form-control form-control-sm" placeholder="Ghi chú..." />
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button class="btn btn-sm btn-cafe-primary rounded-pill w-100" title="Lưu">
+                                                <i class="bi bi-save"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        @if (Model.Attendances.Count == 0)
+                        {
+                            <tr><td colspan="2" class="text-center text-muted py-4">Chưa có bản ghi chấm công.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>

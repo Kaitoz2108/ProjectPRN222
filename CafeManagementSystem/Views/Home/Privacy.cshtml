@@ -1,6 +1,47 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
+@{
+    ViewData["Title"] = "Chính Sách Bảo Mật";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+                         style="width: 48px; height: 48px; background-color: var(--primary-green-light); color: var(--primary-green);">
+                        <i class="bi bi-shield-check fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold text-dark mb-0">Chính Sách Bảo Mật Thông Tin</h3>
+                        <span class="small text-muted">Hệ Thống Quản Lý Laura Café Management System</span>
+                    </div>
+                </div>
+
+                <div class="text-muted" style="line-height: 1.7; font-size: 0.95rem;">
+                    <h5 class="fw-bold text-dark mb-2">1. Thu thập thông tin khách hàng</h5>
+                    <p class="mb-4">
+                        Laura Café thu thập số điện thoại và họ tên nhằm mục đích định danh tài khoản thành viên, tích lũy điểm thưởng và phục vụ giao hàng chính xác đến địa chỉ của Quý khách.
+                    </p>
+
+                    <h5 class="fw-bold text-dark mb-2">2. Sử dụng và bảo mật dữ liệu</h5>
+                    <p class="mb-4">
+                        Mọi thông tin cá nhân được mã hóa và bảo mật nghiêm ngặt theo các tiêu chuẩn kỹ thuật an toàn thông tin. Chúng tôi cam kết không cung cấp hoặc bán thông tin của khách hàng cho bất kỳ bên thứ ba nào.
+                    </p>
+
+                    <h5 class="fw-bold text-dark mb-2">3. Quyền của khách hàng</h5>
+                    <p class="mb-4">
+                        Quý khách có toàn quyền tra cứu, cập nhật thông tin cá nhân hoặc yêu cầu xóa dữ liệu bằng cách truy cập vào trang Hồ Sơ Cá Nhân hoặc liên hệ trực tiếp với bộ phận chăm sóc khách hàng.
+                    </p>
+                </div>
+
+                <div class="pt-3 border-top text-end" style="border-color: var(--border-light) !important;">
+                    <a asp-controller="Customer" asp-action="Menu" class="btn btn-cafe-primary rounded-pill px-4 fw-bold">
+                        Quay lại thực đơn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

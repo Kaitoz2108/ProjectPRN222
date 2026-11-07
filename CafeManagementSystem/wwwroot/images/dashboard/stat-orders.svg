@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="saucerGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E4DDD3"/>
+    </linearGradient>
+    <linearGradient id="cupGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#ECE5DC"/>
+    </linearGradient>
+    <linearGradient id="coffeeCrema" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#A56E42"/>
+      <stop offset="100%" stop-color="#6E4423"/>
+    </linearGradient>
+    <filter id="saucerShadow">
+      <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#302A25" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <!-- Saucer Shadow & Plate -->
+  <ellipse cx="100" cy="148" rx="72" ry="24" fill="#302A25" opacity="0.12" filter="url(#saucerShadow)"/>
+  <ellipse cx="100" cy="144" rx="72" ry="22" fill="url(#saucerGrad)"/>
+  <ellipse cx="100" cy="144" rx="54" ry="15" fill="#E8E2D8"/>
+
+  <!-- Cup Handle -->
+  <path d="M142 92 C168 92 166 126 138 126" fill="none" stroke="#ECE5DC" stroke-width="9" stroke-linecap="round"/>
+  <path d="M142 92 C166 92 164 126 138 126" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Cup Body -->
+  <path d="M52 86 C52 136 74 148 100 148 C126 148 148 136 148 86 Z" fill="url(#cupGrad)" filter="url(#saucerShadow)"/>
+
+  <!-- Cup Opening / Coffee Surface -->
+  <ellipse cx="100" cy="86" rx="48" ry="20" fill="url(#coffeeCrema)"/>
+
+  <!-- Latte Art (Tulip / Heart) -->
+  <path d="M100 96 C93 88 84 84 84 78 C84 72 90 68 96 71 C98 72 100 74 100 75 C100 74 102 72 104 71 C110 68 116 72 116 78 C116 84 107 88 100 96 Z" fill="#FFFBF5"/>
+  <path d="M100 88 C95 82 89 80 89 75 C89 71 93 68 98 70 C100 71 100 72 100 72 C100 72 100 71 102 70 C107 68 111 71 111 75 C111 80 105 82 100 88 Z" fill="#FFF4E6"/>
+  <line x1="100" y1="71" x2="100" y2="100" stroke="#FFFBF5" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Cup Rim Highlight -->
+  <ellipse cx="100" cy="86" rx="48" ry="20" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.8"/>
+</svg>
+

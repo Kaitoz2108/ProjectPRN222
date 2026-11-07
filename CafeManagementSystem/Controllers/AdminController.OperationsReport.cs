@@ -31,8 +31,12 @@ public partial class AdminController
         model.TopProducts = await _context.OrderItems.AsNoTracking()
             .Where(x => x.Order.CreatedAt >= from && x.Order.CreatedAt < end && x.Order.PreparationStatus != "Cancelled"
                 && x.Order.PaymentTransactions.Any(p => p.TransactionType == "Payment" && p.PaymentStatus == "Success"))
-            .GroupBy(x => new { x.Variant.ProductId, x.Variant.Product.ProductName })
-            .Select(g => new AdminProductSalesRow { ProductName = g.Key.ProductName, Quantity = g.Sum(x => x.Quantity) })
+            .GroupBy(x => new { x.Variant.ProductId, x.Variant.Product.ProductName, x.Variant.Product.ImageUrl })
+            .Select(g => new AdminProductSalesRow { 
+                ProductName = g.Key.ProductName, 
+                Quantity = g.Sum(x => x.Quantity),
+                ImageUrl = g.Key.ImageUrl
+            })
             .OrderByDescending(x => x.Quantity).ThenBy(x => x.ProductName).Take(5).ToListAsync();
         model.CashierShifts = await _context.CashierShifts.AsNoTracking().Include(x => x.Cashier)
             .Where(x => x.StartTime >= from && x.StartTime < end).OrderByDescending(x => x.StartTime).ToListAsync();

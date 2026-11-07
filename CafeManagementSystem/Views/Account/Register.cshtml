@@ -3,84 +3,94 @@
     ViewData["Title"] = "Đăng Ký Khách Hàng";
 }
 
-<div class="row justify-content-center py-4">
+<div class="row justify-content-center py-5">
     <div class="col-md-7 col-lg-6">
-        <div class="card shadow-sm border-0 rounded-3">
-            <div class="card-header bg-success text-white text-center py-3 rounded-top-3">
-                <h4 class="mb-0 fw-bold"><i class="bi bi-person-plus-fill me-2"></i>Đăng Ký Khách Hàng Mới</h4>
-                <small class="text-white-50">Tạo tài khoản nhận ưu đãi tích lũy điểm thưởng khi mua đồ uống</small>
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" 
+             style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+            
+            <div class="p-4 text-center border-bottom" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2"
+                     style="width: 52px; height: 52px; background-color: var(--primary-green-light); color: var(--primary-green);">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width: 28px; height: 28px;">
+                        <path d="M2.08 14.88C1.52 11.23 2.74 7.42 5.56 4.6C8.38 1.78 12.19 0.56 15.84 1.12C16.89 1.28 17.84 1.84 18.5 2.68C19.86 4.41 19.34 6.89 17.65 8.58C16.48 9.75 14.85 10.45 13.15 10.74C10.66 11.17 8.35 12.35 6.64 14.06C5.46 15.24 3.79 16.03 2.08 14.88ZM21.92 9.12C22.48 12.77 21.26 16.58 18.44 19.4C15.62 22.22 11.81 23.44 8.16 22.88C7.11 22.72 6.16 22.16 5.5 21.32C4.14 19.59 4.66 17.11 6.35 15.42C7.52 14.25 9.15 13.55 10.85 13.26C13.34 12.83 15.65 11.65 17.36 9.94C18.54 8.76 20.21 7.97 21.92 9.12Z"/>
+                    </svg>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">Laura Café</h4>
+                <div class="small text-muted fw-semibold mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase;">Management System</div>
+                <p class="text-muted small mb-0">Đăng ký thành viên nhận ngay ưu đãi & tích lũy điểm thưởng</p>
             </div>
+
             <div class="card-body p-4">
                 <form asp-action="Register" method="post">
                     @Html.AntiForgeryToken()
 
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 rounded-3 small" role="alert"></div>
 
                     <div class="mb-3">
-                        <label asp-for="FullName" class="form-label fw-semibold"></label> <span class="text-danger">*</span>
+                        <label asp-for="FullName" class="form-label small fw-bold text-dark"></label> <span class="text-danger">*</span>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input asp-for="FullName" class="form-control" placeholder="VD: Nguyễn Văn A" />
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                            <input asp-for="FullName" class="form-control border-start-0" placeholder="VD: Nguyễn Văn A" />
                         </div>
                         <span asp-validation-for="FullName" class="text-danger small"></span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Phone" class="form-label fw-semibold"></label> <span class="text-danger">*</span>
+                            <label asp-for="Phone" class="form-label small fw-bold text-dark"></label> <span class="text-danger">*</span>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                                <input asp-for="Phone" class="form-control" placeholder="VD: 0987654321" />
+                                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-telephone"></i></span>
+                                <input asp-for="Phone" class="form-control border-start-0" placeholder="VD: 0987654321" />
                             </div>
                             <span asp-validation-for="Phone" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Email" class="form-label fw-semibold"></label>
+                            <label asp-for="Email" class="form-label small fw-bold text-dark"></label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                <input asp-for="Email" class="form-control" placeholder="VD: customer@gmail.com" />
+                                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control border-start-0" placeholder="VD: customer@gmail.com" />
                             </div>
                             <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Address" class="form-label fw-semibold"></label>
+                        <label asp-for="Address" class="form-label small fw-bold text-dark"></label>
                         <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                            <input asp-for="Address" class="form-control" placeholder="VD: Số 123 Đường Cầu Giấy, Hà Nội" />
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-geo-alt"></i></span>
+                            <input asp-for="Address" class="form-control border-start-0" placeholder="VD: Số 123 Đường Cầu Giấy, Hà Nội" />
                         </div>
                         <span asp-validation-for="Address" class="text-danger small"></span>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Password" class="form-label fw-semibold"></label> <span class="text-danger">*</span>
+                            <label asp-for="Password" class="form-label small fw-bold text-dark"></label> <span class="text-danger">*</span>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                <input asp-for="Password" type="password" class="form-control" placeholder="Tối thiểu 6 ký tự" />
+                                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                                <input asp-for="Password" type="password" class="form-control border-start-0" placeholder="Tối thiểu 6 ký tự" />
                             </div>
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label> <span class="text-danger">*</span>
+                            <label asp-for="ConfirmPassword" class="form-label small fw-bold text-dark"></label> <span class="text-danger">*</span>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
-                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" />
+                                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-shield-check"></i></span>
+                                <input asp-for="ConfirmPassword" type="password" class="form-control border-start-0" placeholder="Nhập lại mật khẩu" />
                             </div>
                             <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
                     </div>
 
-                    <div class="d-grid mb-3 mt-2">
-                        <button type="submit" class="btn btn-success btn-lg fw-semibold">
+                    <div class="d-grid mb-3 mt-3">
+                        <button type="submit" class="btn btn-cafe-primary rounded-pill py-2 fw-bold fs-6">
                             <i class="bi bi-check-circle me-1"></i> Hoàn Tất Đăng Ký
                         </button>
                     </div>
 
-                    <div class="text-center">
+                    <div class="text-center small">
                         <span class="text-muted">Đã có tài khoản?</span>
-                        <a asp-action="Login" class="fw-semibold text-decoration-none">Đăng nhập tại đây</a>
+                        <a asp-action="Login" class="fw-bold text-decoration-none ms-1" style="color: var(--primary-green);">Đăng nhập tại đây</a>
                     </div>
                 </form>
             </div>

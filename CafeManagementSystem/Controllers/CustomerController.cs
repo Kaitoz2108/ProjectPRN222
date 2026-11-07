@@ -59,6 +59,19 @@ public class CustomerController : Controller
         ViewBag.SelectedCategoryId = categoryId;
         ViewBag.CartCount = GetCart().Sum(c => c.Quantity);
 
+        var userId = GetCurrentUserId();
+        if (userId > 0)
+        {
+            var u = await _context.Users.FindAsync(userId);
+            ViewBag.UserPoints = u?.LoyaltyPoints ?? 0;
+            ViewBag.UserName = u?.FullName ?? "Khách hàng";
+        }
+        else
+        {
+            ViewBag.UserPoints = 0;
+            ViewBag.UserName = "Khách hàng";
+        }
+
         var query = _context.Products
             .Include(p => p.Category)
             .Include(p => p.ProductVariants.Where(v => v.IsActive))
@@ -110,6 +123,7 @@ public class CustomerController : Controller
                 VariantId = variant.VariantId,
                 ProductId = variant.ProductId,
                 ProductName = variant.Product.ProductName,
+                ImageUrl = variant.Product.ImageUrl,
                 SizeName = variant.SizeName,
                 UnitPrice = variant.Price,
                 Quantity = quantity,

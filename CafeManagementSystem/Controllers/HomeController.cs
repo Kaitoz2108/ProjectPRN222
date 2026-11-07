@@ -30,7 +30,7 @@ public class HomeController : Controller
             };
         }
 
-        return RedirectToAction("Login", "Account");
+        return RedirectToAction("Index", "Landing");
     }
 
     public IActionResult Privacy()

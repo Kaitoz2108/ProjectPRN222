@@ -5,23 +5,28 @@
 
 <div class="container py-4">
     <div class="mb-4">
-        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-chat-heart text-danger me-2"></i>Khiếu Nại & Góp Ý Dịch Vụ</h3>
-        <p class="text-muted mb-0">Chúng tôi luôn lắng nghe ý kiến phản hồi của bạn để nâng cao chất lượng đồ uống và dịch vụ</p>
+        <h2 class="fw-bold text-dark mb-1">Khiếu nại & Góp ý dịch vụ</h2>
+        <p class="text-muted small mb-0">Chúng tôi luôn trân trọng mọi ý kiến phản hồi để nâng cao chất lượng đồ uống và dịch vụ</p>
     </div>
 
     <div class="row g-4">
         <!-- Cột trái: Form gửi khiếu nại / góp ý mới -->
         <div class="col-lg-5">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-danger text-white py-3">
-                    <h5 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2"></i>Gửi Phản Hồi Mới</h5>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden"
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                
+                <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-pencil-square me-2" style="color: var(--primary-green);"></i>Gửi Phản Hồi Mới
+                    </h5>
                 </div>
+
                 <div class="card-body p-4">
                     @if (!Model.EligibleOrders.Any())
                     {
                         <div class="text-center py-4 text-muted">
-                            <i class="bi bi-info-circle fs-2 d-block mb-2"></i>
-                            Bạn chưa có đơn hàng nào để gửi khiếu nại.
+                            <i class="bi bi-info-circle fs-2 d-block mb-2 opacity-50"></i>
+                            <span class="small">Bạn chưa có đơn hàng nào đủ điều kiện để gửi khiếu nại.</span>
                         </div>
                     }
                     else
@@ -30,9 +35,9 @@
                             @Html.AntiForgeryToken()
 
                             <div class="mb-3">
-                                <label asp-for="Form.OrderId" class="form-label fw-semibold"></label>
+                                <label asp-for="Form.OrderId" class="form-label small fw-bold text-dark"></label>
                                 <select asp-for="Form.OrderId" class="form-select" required>
-                                    <option value="">-- Chọn đơn hàng --</option>
+                                    <option value="">-- Chọn đơn hàng cần góp ý --</option>
                                     @foreach (var o in Model.EligibleOrders)
                                     {
                                         <option value="@o.OrderId">#@o.OrderCode (@o.CreatedAt.ToString("dd/MM/yyyy HH:mm") - @o.TotalAmount.ToString("N0") đ)</option>
@@ -42,7 +47,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Form.ComplaintType" class="form-label fw-semibold"></label>
+                                <label asp-for="Form.ComplaintType" class="form-label small fw-bold text-dark"></label>
                                 <select asp-for="Form.ComplaintType" class="form-select" required>
                                     <option value="Chất lượng đồ uống">Chất lượng đồ uống</option>
                                     <option value="Giao hàng chậm">Giao hàng chậm</option>
@@ -53,30 +58,30 @@
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Form.Rating" class="form-label fw-semibold"></label>
+                                <label asp-for="Form.Rating" class="form-label small fw-bold text-dark"></label>
                                 <select asp-for="Form.Rating" class="form-select">
-                                    <option value="5">⭐⭐⭐⭐⭐ (5 sao - Rất tốt)</option>
-                                    <option value="4">⭐⭐⭐⭐ (4 sao - Hài lòng)</option>
+                                    <option value="5">⭐⭐⭐⭐⭐ (5 sao - Rất hài lòng)</option>
+                                    <option value="4">⭐⭐⭐⭐ (4 sao - Tốt)</option>
                                     <option value="3">⭐⭐⭐ (3 sao - Bình thường)</option>
-                                    <option value="2">⭐⭐ (2 sao - Không hài lòng)</option>
-                                    <option value="1">⭐ (1 sao - Rất tệ)</option>
+                                    <option value="2">⭐⭐ (2 sao - Chưa hài lòng)</option>
+                                    <option value="1">⭐ (1 sao - Rất thất vọng)</option>
                                 </select>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Form.Content" class="form-label fw-semibold"></label>
-                                <textarea asp-for="Form.Content" class="form-control" rows="3" required placeholder="Mô tả cụ thể vấn đề bạn gặp phải..."></textarea>
+                                <label asp-for="Form.Content" class="form-label small fw-bold text-dark"></label>
+                                <textarea asp-for="Form.Content" class="form-control" rows="3" required placeholder="Mô tả cụ thể sự cố hoặc trải nghiệm của bạn..."></textarea>
                                 <span asp-validation-for="Form.Content" class="text-danger small"></span>
                             </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Form.EvidenceImageUrl" class="form-label fw-semibold"></label>
-                                <input asp-for="Form.EvidenceImageUrl" class="form-control" placeholder="https://... (Link ảnh ly nước/sự cố nếu có)" />
-                                <small class="text-muted">Dán link ảnh chụp sản phẩm hoặc sự cố.</small>
+                            <div class="mb-4">
+                                <label asp-for="Form.EvidenceImageUrl" class="form-label small fw-bold text-dark"></label>
+                                <input asp-for="Form.EvidenceImageUrl" class="form-control" placeholder="https://... (Link ảnh ly nước/hóa đơn nếu có)" />
+                                <small class="text-muted" style="font-size: 0.75rem;">Dán link ảnh chụp sản phẩm hoặc sự cố.</small>
                             </div>
 
-                            <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold py-2 shadow-sm">
-                                <i class="bi bi-send-fill me-2"></i>Gửi phản hồi cho Ban Quản Trị
+                            <button type="submit" class="btn btn-cafe-primary w-100 rounded-pill fw-bold py-2 shadow-sm">
+                                <i class="bi bi-send me-1"></i> Gửi Phản Hồi Cho Ban Quản Lý
                             </button>
                         </form>
                     }
@@ -86,16 +91,21 @@
 
         <!-- Cột phải: Lịch sử khiếu nại đã gửi và phản hồi của Admin -->
         <div class="col-lg-7">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-danger"></i>Lịch Sử Khiếu Nại Của Bạn (@Model.Complaints.Count)</h5>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden"
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                
+                <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-chat-left-dots me-2" style="color: var(--primary-green);"></i>Lịch Sử Khiếu Nại Của Bạn (@Model.Complaints.Count)
+                    </h5>
                 </div>
+
                 <div class="card-body p-3">
                     @if (!Model.Complaints.Any())
                     {
                         <div class="text-center py-5 text-muted">
-                            <i class="bi bi-emoji-smile fs-1 d-block mb-2 text-warning"></i>
-                            Bạn chưa có khiếu nại nào. Chúc bạn có trải nghiệm tuyệt vời cùng CMS Café!
+                            <i class="bi bi-emoji-smile fs-1 d-block mb-2" style="color: var(--accent-caramel);"></i>
+                            <span class="small">Bạn chưa có khiếu nại nào. Chúc bạn có trải nghiệm tuyệt vời cùng Laura Café!</span>
                         </div>
                     }
                     else
@@ -105,38 +115,38 @@
                             {
                                 string badgeClass = c.ComplaintStatus switch
                                 {
-                                    "Resolved" => "bg-success",
-                                    "Rejected" => "bg-danger",
-                                    "InProgress" => "bg-primary",
-                                    _ => "bg-warning text-dark"
+                                    "Resolved" => "cafe-badge-success",
+                                    "Rejected" => "cafe-badge-danger",
+                                    "InProgress" => "cafe-badge-warning",
+                                    _ => "cafe-badge-neutral"
                                 };
 
                                 string statusText = c.ComplaintStatus switch
                                 {
                                     "Resolved" => "Đã giải quyết",
-                                    "Rejected" => "Đã từ chối",
+                                    "Rejected" => "Từ chối",
                                     "InProgress" => "Đang xử lý",
                                     _ => "Chờ tiếp nhận"
                                 };
 
-                                <div class="card border rounded-3 p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div>
-                                            <span class="fw-bold text-primary">#@c.Order.OrderCode</span>
-                                            <span class="badge bg-light text-dark border ms-2">@c.ComplaintType</span>
-                                            <span class="badge @badgeClass ms-1">@statusText</span>
+                                <div class="card border rounded-3 p-3" style="background-color: #FFFFFF; border-color: var(--border-color) !important;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-bold" style="color: var(--primary-green);">#@c.Order.OrderCode</span>
+                                            <span class="badge rounded-pill bg-light text-dark border">@c.ComplaintType</span>
+                                            <span class="cafe-badge @badgeClass">@statusText</span>
                                         </div>
-                                        <small class="text-muted">@c.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                        <small class="text-muted" style="font-size: 0.8rem;">@c.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
                                     </div>
 
                                     <div class="mb-2">
                                         <div class="text-warning small mb-1">
                                             @for (int s = 0; s < (c.Rating ?? 5); s++) { <span>★</span> }
                                         </div>
-                                        <p class="mb-1 text-dark">@c.Content</p>
+                                        <p class="mb-1 text-dark small">@c.Content</p>
                                         @if (!string.IsNullOrWhiteSpace(c.EvidenceImageUrl))
                                         {
-                                            <a href="@c.EvidenceImageUrl" target="_blank" class="small text-decoration-none">
+                                            <a href="@c.EvidenceImageUrl" target="_blank" class="small text-decoration-none" style="color: var(--primary-green);">
                                                 <i class="bi bi-image me-1"></i>Xem ảnh minh chứng
                                             </a>
                                         }
@@ -144,18 +154,20 @@
 
                                     @if (!string.IsNullOrWhiteSpace(c.AdminResponse))
                                     {
-                                        <div class="bg-light p-3 rounded-3 border-start border-danger border-4 mt-2">
+                                        <div class="p-3 rounded-3 mt-2" style="background-color: #F8F5EE; border-left: 3px solid var(--primary-green);">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <span class="small fw-bold text-danger"><i class="bi bi-shield-check me-1"></i>Phản hồi từ Quản trị viên:</span>
+                                                <span class="small fw-bold" style="color: var(--primary-green);">
+                                                    <i class="bi bi-shield-check me-1"></i>Phản hồi từ Quản trị viên:
+                                                </span>
                                                 @if (c.ResolvedAt.HasValue)
                                                 {
-                                                    <small class="text-muted">@c.ResolvedAt.Value.ToString("dd/MM/yyyy HH:mm")</small>
+                                                    <small class="text-muted" style="font-size: 0.75rem;">@c.ResolvedAt.Value.ToString("dd/MM/yyyy HH:mm")</small>
                                                 }
                                             </div>
-                                            <p class="mb-1 small">@c.AdminResponse</p>
+                                            <p class="mb-1 small text-dark">@c.AdminResponse</p>
                                             @if (c.IsRefundApproved && c.RefundAmount.HasValue && c.RefundAmount.Value > 0)
                                             {
-                                                <div class="badge bg-success p-2 mt-1">
+                                                <div class="cafe-badge cafe-badge-success mt-2">
                                                     <i class="bi bi-cash-coin me-1"></i>Đã phê duyệt hoàn tiền: @c.RefundAmount.Value.ToString("N0") VNĐ
                                                 </div>
                                             }
@@ -170,4 +182,3 @@
         </div>
     </div>
 </div>
-

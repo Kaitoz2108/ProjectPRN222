@@ -3,100 +3,117 @@
     ViewData["Title"] = "Kiểm Soát Tồn Kho & Nhập Kho";
 }
 
-<div class="container-fluid px-4 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="container-fluid px-3 px-lg-4 py-3">
+    <!-- Header Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
         <div>
-            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-boxes text-danger me-2"></i>Quản Lý Tồn Kho & Nhập Thêm Nguyên Liệu (Restock)</h3>
-            <p class="text-muted mb-0">Theo dõi định lượng tồn, cảnh báo thiếu hụt và lập phiếu nhập kho tính chi phí</p>
+            <h2 class="fw-bold text-dark mb-1">Kiểm soát tồn kho & Nhập hàng</h2>
+            <p class="text-muted small mb-0">Theo dõi định mức tồn kho, cảnh báo thiếu hụt và lập phiếu nhập kho tính chi phí</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#modalAddIngredient">
-                <i class="bi bi-plus-circle me-1"></i>Thêm Nguyên Liệu Mới
+            <button class="btn btn-cafe-outline rounded-pill btn-sm d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalAddIngredient">
+                <i class="bi bi-plus-circle"></i> Thêm nguyên liệu mới
             </button>
-            <button class="btn btn-danger rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalRestock">
-                <i class="bi bi-box-arrow-in-down me-1"></i>Lập Phiếu Nhập Kho
+            <button class="btn btn-cafe-primary rounded-pill btn-sm d-inline-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalRestock">
+                <i class="bi bi-box-arrow-in-down"></i> Lập phiếu nhập kho
             </button>
         </div>
     </div>
 
-    <!-- Thống kê tổng quan -->
+    <!-- 3 Stat Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="small opacity-75">Tổng Loại Nguyên Liệu</div>
-                        <div class="fs-2 fw-bold">@Model.Ingredients.Count</div>
+            <div class="card border-0 shadow-sm rounded-4 p-3" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 48px; height: 48px; background-color: var(--primary-green-light); color: var(--primary-green);">
+                        <i class="bi bi-boxes fs-4"></i>
                     </div>
-                    <i class="bi bi-box-seam fs-1 opacity-50"></i>
+                    <div>
+                        <div class="text-muted small" style="font-size: 0.78rem;">Tổng loại nguyên liệu</div>
+                        <div class="fs-4 fw-bold text-dark">@Model.Ingredients.Count</div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 @(Model.LowStockCount > 0 ? "bg-danger" : "bg-success") text-white p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="small opacity-75">Cảnh Báo Sắp Hết Hàng</div>
-                        <div class="fs-2 fw-bold">@Model.LowStockCount</div>
+            <div class="card border-0 shadow-sm rounded-4 p-3" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 48px; height: 48px; background-color: @(Model.LowStockCount > 0 ? "#FDF0F0" : "#EAF5EA"); color: @(Model.LowStockCount > 0 ? "var(--status-danger)" : "var(--status-success)");">
+                        <i class="bi bi-exclamation-octagon fs-4"></i>
                     </div>
-                    <i class="bi bi-exclamation-octagon fs-1 opacity-50"></i>
+                    <div>
+                        <div class="text-muted small" style="font-size: 0.78rem;">Cảnh báo sắp hết hàng</div>
+                        <div class="fs-4 fw-bold" style="color: @(Model.LowStockCount > 0 ? "var(--status-danger)" : "var(--status-success)");">@Model.LowStockCount</div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 bg-dark text-white p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="small opacity-75">Biến Động Kho Gần Nhất</div>
-                        <div class="fs-2 fw-bold">@Model.RecentTransactions.Count</div>
+            <div class="card border-0 shadow-sm rounded-4 p-3" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 48px; height: 48px; background-color: #FAF7F2; color: var(--text-main);">
+                        <i class="bi bi-activity fs-4"></i>
                     </div>
-                    <i class="bi bi-activity fs-1 opacity-50"></i>
+                    <div>
+                        <div class="text-muted small" style="font-size: 0.78rem;">Biến động kho gần nhất</div>
+                        <div class="fs-4 fw-bold text-dark">@Model.RecentTransactions.Count</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bảng Tồn Kho Nguyên Liệu -->
+    <!-- Bảng Tồn Kho & Form Nhập Nhanh -->
     <div class="row g-4 mb-4">
         <div class="col-lg-7">
-            <div class="card shadow-sm border-0 rounded-4 h-100">
-                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-card-checklist me-2 text-danger"></i>Danh Sách Tồn Kho Nguyên Liệu</h5>
-                    <button class="btn btn-sm btn-outline-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#modalRestock">
-                        <i class="bi bi-plus-lg me-1"></i>Nhập Thêm
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="card-header border-bottom p-3 d-flex justify-content-between align-items-center" 
+                     style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-card-checklist me-2" style="color: var(--primary-green);"></i>Danh Sách Tồn Kho Nguyên Liệu
+                    </h5>
+                    <button class="btn btn-sm btn-cafe-primary rounded-pill py-1 px-3 small" data-bs-toggle="modal" data-bs-target="#modalRestock">
+                        <i class="bi bi-plus-lg me-1"></i>Nhập thêm
                     </button>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Nguyên liệu</th>
-                                    <th>Đơn vị</th>
-                                    <th class="text-end">Tồn hiện tại</th>
-                                    <th class="text-end">Mức tối thiểu</th>
-                                    <th class="text-center">Trạng thái</th>
+                    <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                            <thead style="background-color: #F8F5EE;" class="sticky-top">
+                                <tr class="text-muted small">
+                                    <th class="ps-3 py-2">Nguyên liệu</th>
+                                    <th class="py-2">ĐVT</th>
+                                    <th class="py-2 text-end">Tồn hiện tại</th>
+                                    <th class="py-2 text-end">Mức tối thiểu</th>
+                                    <th class="pe-3 py-2 text-center">Trạng thái</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var ing in Model.Ingredients)
                                 {
                                     bool isLow = ing.StockQuantity <= ing.MinStockLevel;
-                                    <tr class="@(isLow ? "table-danger" : "")">
-                                        <td class="fw-bold">@ing.IngredientName</td>
-                                        <td><span class="badge bg-light text-dark border">@ing.Unit</span></td>
-                                        <td class="text-end fw-bold fs-6 @(isLow ? "text-danger" : "text-success")">
+                                    <tr style="border-bottom: 1px solid var(--border-light);">
+                                        <td class="ps-3 py-2 fw-semibold text-dark">@ing.IngredientName</td>
+                                        <td class="py-2 text-muted small"><span class="badge rounded-pill bg-light text-dark border">@ing.Unit</span></td>
+                                        <td class="py-2 text-end fw-bold" style="color: @(isLow ? "var(--status-danger)" : "var(--primary-green)");">
                                             @ing.StockQuantity.ToString("N2")
                                         </td>
-                                        <td class="text-end text-muted">@ing.MinStockLevel.ToString("N2")</td>
-                                        <td class="text-center">
+                                        <td class="py-2 text-end text-muted small">@ing.MinStockLevel.ToString("N2")</td>
+                                        <td class="pe-3 py-2 text-center">
                                             @if (isLow)
                                             {
-                                                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Cần nhập</span>
+                                                <span class="cafe-badge cafe-badge-danger">Cần nhập</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Đủ tồn</span>
+                                                <span class="cafe-badge cafe-badge-success">Đủ tồn</span>
                                             }
                                         </td>
                                     </tr>
@@ -110,16 +127,19 @@
 
         <!-- Cột phải: Phiếu Nhập Kho Nhanh -->
         <div class="col-lg-5">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-danger text-white py-3">
-                    <h5 class="fw-bold mb-0"><i class="bi bi-box-arrow-in-down me-2"></i>Lập Phiếu Nhập Kho (Restock)</h5>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden" 
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                <div class="card-header border-bottom p-3" style="background-color: var(--sidebar-bg); border-color: var(--border-color) !important;">
+                    <h5 class="fw-bold text-white mb-0">
+                        <i class="bi bi-box-arrow-in-down me-2" style="color: #FFE082;"></i>Lập Phiếu Nhập Kho (Restock)
+                    </h5>
                 </div>
                 <div class="card-body p-4">
                     <form asp-action="Restock" method="post">
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Chọn nguyên liệu nhập:</label>
-                            <select name="IngredientId" class="form-select" required>
+                            <label class="form-label small fw-bold text-dark">Chọn nguyên liệu nhập: <span class="text-danger">*</span></label>
+                            <select name="IngredientId" class="form-select form-select-sm" required>
                                 <option value="">-- Chọn nguyên liệu --</option>
                                 @foreach (var ing in Model.Ingredients)
                                 {
@@ -128,20 +148,20 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Số lượng nhập thêm:</label>
-                            <input type="number" step="0.01" min="0.01" name="Quantity" class="form-control" placeholder="Ví dụ: 5000 (ml hoặc gram)" required />
+                            <label class="form-label small fw-bold text-dark">Số lượng nhập thêm: <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="0.01" name="Quantity" class="form-control form-control-sm" placeholder="Ví dụ: 5000 (ml hoặc gram)" required />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Đơn giá nhập trên 1 đơn vị (VNĐ):</label>
-                            <input type="number" step="1" min="0" name="UnitCost" class="form-control" placeholder="Ví dụ: 150 (đồng/gram hoặc đồng/ml)" required />
-                            <small class="text-muted">Đơn giá được ghi nhận vào báo cáo chi phí vận hành (RestockCost).</small>
+                            <label class="form-label small fw-bold text-dark">Đơn giá nhập trên 1 ĐVT (VNĐ): <span class="text-danger">*</span></label>
+                            <input type="number" step="1" min="0" name="UnitCost" class="form-control form-control-sm" placeholder="Ví dụ: 150 (đồng/gram hoặc ml)" required />
+                            <small class="text-muted" style="font-size: 0.75rem;">Đơn giá được ghi nhận vào báo cáo chi phí vận hành.</small>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Ghi chú phiếu nhập:</label>
-                            <input type="text" name="ReasonOrNote" class="form-control" placeholder="Nhà cung cấp Vinamilk, hóa đơn số..." />
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-dark">Ghi chú phiếu nhập:</label>
+                            <input type="text" name="ReasonOrNote" class="form-control form-control-sm" placeholder="Nhà cung cấp, hóa đơn số..." />
                         </div>
-                        <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold py-2 shadow-sm">
-                            <i class="bi bi-check2-circle me-1"></i>Xác nhận nhập kho & Ghi nhận chi phí
+                        <button type="submit" class="btn btn-cafe-primary w-100 rounded-pill fw-bold py-2 shadow-sm">
+                            <i class="bi bi-check2-circle me-1"></i> Xác Nhận Nhập Kho & Ghi Nhận Chi Phí
                         </button>
                     </form>
                 </div>
@@ -150,33 +170,36 @@
     </div>
 
     <!-- Bảng Lịch Sử Biến Động Kho Gần Nhất -->
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-header bg-white py-3 border-bottom">
-            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-danger"></i>Lịch Sử Giao Dịch Kho (Nhập kho, Trừ pha chế, Hao hụt)</h5>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden" 
+         style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+        <div class="card-header border-bottom p-3" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-clock-history me-2" style="color: var(--accent-caramel);"></i>Lịch Sử Giao Dịch Kho (Nhập kho, Trừ pha chế, Hao hụt)
+            </h5>
         </div>
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Thời gian</th>
-                            <th>Nguyên liệu</th>
-                            <th class="text-center">Loại giao dịch</th>
-                            <th class="text-end">Số lượng thay đổi</th>
-                            <th class="text-end">Đơn giá nhập</th>
-                            <th>Người thực hiện</th>
-                            <th>Ghi chú</th>
+            <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                    <thead style="background-color: #F8F5EE;" class="sticky-top">
+                        <tr class="text-muted small">
+                            <th class="ps-3 py-2">Thời gian</th>
+                            <th class="py-2">Nguyên liệu</th>
+                            <th class="py-2 text-center">Loại giao dịch</th>
+                            <th class="py-2 text-end">Số lượng thay đổi</th>
+                            <th class="py-2 text-end">Đơn giá nhập</th>
+                            <th class="py-2">Người thực hiện</th>
+                            <th class="pe-3 py-2">Ghi chú</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var t in Model.RecentTransactions)
                         {
-                            string typeBadge = t.TransactionType switch
+                            string typeBadgeClass = t.TransactionType switch
                             {
-                                "Restock" => "bg-success",
-                                "OrderDeduction" => "bg-primary",
-                                "Wastage" => "bg-danger",
-                                _ => "bg-secondary"
+                                "Restock" => "cafe-badge-success",
+                                "OrderDeduction" => "cafe-badge",
+                                "Wastage" => "cafe-badge-danger",
+                                _ => "cafe-badge-neutral"
                             };
 
                             string typeText = t.TransactionType switch
@@ -187,20 +210,20 @@
                                 _ => t.TransactionType
                             };
 
-                            <tr>
-                                <td class="small text-muted">@t.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                                <td class="fw-bold">@t.Ingredient.IngredientName</td>
-                                <td class="text-center">
-                                    <span class="badge @typeBadge">@typeText</span>
+                            <tr style="border-bottom: 1px solid var(--border-light);">
+                                <td class="ps-3 py-2 small text-muted">@t.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td class="py-2 fw-semibold text-dark">@t.Ingredient.IngredientName</td>
+                                <td class="py-2 text-center">
+                                    <span class="@typeBadgeClass">@typeText</span>
                                 </td>
-                                <td class="text-end fw-bold @(t.QuantityChanged > 0 ? "text-success" : "text-danger")">
+                                <td class="py-2 text-end fw-bold" style="color: @(t.QuantityChanged > 0 ? "var(--primary-green)" : "var(--status-danger)");">
                                     @(t.QuantityChanged > 0 ? "+" : "")@t.QuantityChanged.ToString("N2") @t.Ingredient.Unit
                                 </td>
-                                <td class="text-end text-muted">
+                                <td class="py-2 text-end text-muted small">
                                     @(t.UnitCost.HasValue ? t.UnitCost.Value.ToString("N0") + " đ" : "-")
                                 </td>
-                                <td class="small">@(t.PerformedByUser?.FullName ?? "Hệ thống")</td>
-                                <td class="small text-secondary">@t.ReasonOrNote</td>
+                                <td class="py-2 small">@(t.PerformedByUser?.FullName ?? "Hệ thống")</td>
+                                <td class="pe-3 py-2 small text-muted">@t.ReasonOrNote</td>
                             </tr>
                         }
                     </tbody>
@@ -212,35 +235,37 @@
 
 <!-- Modal Thêm Nguyên Liệu Mới -->
 <div class="modal fade" id="modalAddIngredient" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-4">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Thêm Nguyên Liệu Mới</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom p-3" style="background-color: #FAF7F2;">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-plus-circle me-2" style="color: var(--primary-green);"></i>Thêm Nguyên Liệu Mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="CreateIngredient" method="post">
                 @Html.AntiForgeryToken()
-                <div class="modal-body">
+                <div class="modal-body p-3">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Tên nguyên liệu:</label>
-                        <input type="text" name="IngredientName" class="form-control" placeholder="Ví dụ: Bột Matcha Nhật, Thạch Củ Năng..." required />
+                        <label class="form-label small fw-bold text-dark">Tên nguyên liệu:</label>
+                        <input type="text" name="IngredientName" class="form-control" placeholder="Ví dụ: Bột Matcha Nhật, Trà Đen Ô Long..." required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Đơn vị tính:</label>
+                        <label class="form-label small fw-bold text-dark">Đơn vị tính:</label>
                         <input type="text" name="Unit" class="form-control" placeholder="gram, ml, miếng, gói..." required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Số lượng tồn ban đầu:</label>
+                        <label class="form-label small fw-bold text-dark">Số lượng tồn ban đầu:</label>
                         <input type="number" step="0.01" name="InitialStock" value="0" class="form-control" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Mức cảnh báo tối thiểu (Min Stock Level):</label>
+                        <label class="form-label small fw-bold text-dark">Mức cảnh báo tối thiểu (Min Stock):</label>
                         <input type="number" step="0.01" name="MinStockLevel" value="500" class="form-control" required />
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-danger rounded-pill">Lưu nguyên liệu</button>
+                <div class="modal-footer border-top p-3" style="background-color: #FAF7F2;">
+                    <button type="button" class="btn btn-cafe-outline btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-cafe-primary btn-sm rounded-pill px-4 fw-bold">Lưu nguyên liệu</button>
                 </div>
             </form>
         </div>
@@ -249,17 +274,19 @@
 
 <!-- Modal Restock Popup -->
 <div class="modal fade" id="modalRestock" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-4">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title fw-bold"><i class="bi bi-box-arrow-in-down me-2"></i>Lập Phiếu Nhập Kho</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom p-3" style="background-color: #FAF7F2;">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-box-arrow-in-down me-2" style="color: var(--primary-green);"></i>Lập Phiếu Nhập Kho
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="Restock" method="post">
                 @Html.AntiForgeryToken()
-                <div class="modal-body">
+                <div class="modal-body p-3">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Chọn nguyên liệu:</label>
+                        <label class="form-label small fw-bold text-dark">Chọn nguyên liệu:</label>
                         <select name="IngredientId" class="form-select" required>
                             @foreach (var ing in Model.Ingredients)
                             {
@@ -268,24 +295,23 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Số lượng nhập:</label>
+                        <label class="form-label small fw-bold text-dark">Số lượng nhập:</label>
                         <input type="number" step="0.01" min="0.01" name="Quantity" class="form-control" required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Đơn giá nhập (VNĐ):</label>
+                        <label class="form-label small fw-bold text-dark">Đơn giá nhập (VNĐ):</label>
                         <input type="number" step="1" min="0" name="UnitCost" class="form-control" required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Ghi chú:</label>
+                        <label class="form-label small fw-bold text-dark">Ghi chú:</label>
                         <input type="text" name="ReasonOrNote" class="form-control" placeholder="Ghi chú đợt nhập hàng" />
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-danger rounded-pill">Nhập kho</button>
+                <div class="modal-footer border-top p-3" style="background-color: #FAF7F2;">
+                    <button type="button" class="btn btn-cafe-outline btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-cafe-primary btn-sm rounded-pill px-4 fw-bold">Nhập kho</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-

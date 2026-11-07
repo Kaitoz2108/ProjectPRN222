@@ -1,0 +1,213 @@
+@model CafeManagementSystem.Models.ViewModels.LandingPageViewModel
+@{
+    Layout = "_LandingLayout";
+    ViewData["Title"] = "Laura Café Management System - Thưởng thức cà phê, theo cách của bạn";
+}
+
+<!-- 1. HERO SECTION -->
+<section class="landing-hero">
+    <div class="cafe-landing-container">
+        <div class="landing-hero-row">
+            <!-- Left Column: Hero Text & Actions -->
+            <div class="landing-hero-left">
+                <div class="landing-hero-eyebrow">CHÀO MỪNG ĐẾN LAURA CAFÉ</div>
+                <h1 class="landing-hero-title">
+                    Thưởng thức cà phê,<br />
+                    theo <span class="accent-green">cách của bạn.</span>
+                </h1>
+                <p class="landing-hero-desc">
+                    Cà phê Việt đậm vị, trà trái cây thanh mát.<br />
+                    Chọn món yêu thích và đặt ngay trên website.
+                </p>
+                <div class="landing-hero-actions">
+                    <a asp-controller="Customer" asp-action="Menu" class="landing-btn-primary">
+                        <span>Đặt món ngay</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                    <a href="#about" class="landing-hero-story-link">Câu chuyện của quán</a>
+                </div>
+            </div>
+
+            <!-- Right Column: Arched Hero Photograph -->
+            <div class="landing-hero-right">
+                <div class="landing-hero-arch">
+                    <img src="/images/landing/landing-hero.jpg" alt="Bạc xỉu đá Laura Café" 
+                         onerror="this.onerror=null; this.src='/images/products/bac-xiu.jpg';" />
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. INFO STRIP (DẢI THÔNG TIN) -->
+<section class="landing-info-strip">
+    <div class="cafe-landing-container">
+        <div class="landing-info-card">
+            <!-- Feature 1 -->
+            <div class="landing-info-item">
+                <i class="bi bi-cup-straw landing-info-icon"></i>
+                <span>Chọn size phù hợp</span>
+            </div>
+
+            <div class="landing-info-divider"></div>
+
+            <!-- Feature 2 -->
+            <div class="landing-info-item">
+                <svg class="landing-info-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="7" r="3.5" />
+                    <circle cx="7" cy="16" r="3.5" />
+                    <circle cx="17" cy="16" r="3.5" />
+                </svg>
+                <span>Tùy chỉnh đường & đá</span>
+            </div>
+
+            <div class="landing-info-divider"></div>
+
+            <!-- Feature 3 -->
+            <div class="landing-info-item">
+                <i class="bi bi-laptop landing-info-icon"></i>
+                <span>Đặt hàng trên web</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 3. FEATURED DRINKS (HƯƠNG VỊ ĐẶC TRƯNG - ĐỒNG BỘ TỪ DATABASE) -->
+<section class="landing-featured" id="featured">
+    <div class="cafe-landing-container">
+        <div class="landing-section-header">
+            <div>
+                <h2 class="landing-section-title">Hương vị đặc trưng</h2>
+                <p class="landing-section-subtitle">Một lựa chọn ngon cho mỗi ngày.</p>
+            </div>
+            <a asp-controller="Customer" asp-action="Menu" class="landing-view-all-link">
+                Xem toàn bộ thực đơn &rarr;
+            </a>
+        </div>
+
+        @if (Model.Categories.Any())
+        {
+            <!-- Category Filter Pills (Đồng bộ theo danh mục Database) -->
+            <div class="landing-category-filter">
+                <button type="button" class="landing-cat-pill active" data-filter="featured">
+                    <i class="bi bi-star-fill text-warning small"></i>
+                    <span>Món nổi bật</span>
+                </button>
+                @foreach (var cat in Model.Categories)
+                {
+                    <button type="button" class="landing-cat-pill" data-filter="cat-@cat.CategoryId">
+                        <span>@cat.CategoryName</span>
+                        <span class="badge rounded-pill bg-light text-dark ms-1" style="font-size: 0.72rem;">@cat.ProductCount</span>
+                    </button>
+                }
+                <button type="button" class="landing-cat-pill" data-filter="all">
+                    <span>Tất cả (@Model.AllProducts.Count)</span>
+                </button>
+            </div>
+        }
+
+        <div class="landing-drinks-grid" id="landingDrinksGrid">
+            @* 1. 3 Món đặc trưng tiêu biểu (Hiển thị mặc định chuẩn ảnh tham chiếu) *@
+            @foreach (var prod in Model.FeaturedProducts)
+            {
+                <div class="landing-drink-card" data-featured="true" data-cat="cat-@prod.CategoryId">
+                    <div class="landing-drink-img-wrap">
+                        <img src="@(string.IsNullOrWhiteSpace(prod.ImageUrl) ? "/images/products/default.jpg" : prod.ImageUrl)" 
+                             alt="@prod.ProductName" 
+                             class="landing-drink-img"
+                             onerror="this.onerror=null; this.src='/images/products/default.jpg';" />
+                    </div>
+                    <div class="landing-drink-body">
+                        <div class="landing-drink-category">@prod.CategoryName.ToUpper()</div>
+                        <div class="landing-drink-name">@prod.ProductName</div>
+                        <div class="landing-drink-footer">
+                            <div class="landing-drink-price">
+                                Từ @prod.MinPrice.ToString("N0") đ
+                            </div>
+                            <a asp-controller="Customer" asp-action="Menu" asp-route-categoryId="@prod.CategoryId" 
+                               class="landing-drink-add-btn" 
+                               title="Xem và chọn món @prod.ProductName">
+                                <i class="bi bi-plus-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* 2. Toàn bộ các món còn lại trong Database (Ẩn mặc định, hiển thị khi lọc theo danh mục) *@
+            @foreach (var prod in Model.AllProducts.Where(p => !Model.FeaturedProducts.Any(f => f.ProductId == p.ProductId)))
+            {
+                <div class="landing-drink-card d-none" data-featured="false" data-cat="cat-@prod.CategoryId">
+                    <div class="landing-drink-img-wrap">
+                        <img src="@(string.IsNullOrWhiteSpace(prod.ImageUrl) ? "/images/products/default.jpg" : prod.ImageUrl)" 
+                             alt="@prod.ProductName" 
+                             class="landing-drink-img"
+                             onerror="this.onerror=null; this.src='/images/products/default.jpg';" />
+                    </div>
+                    <div class="landing-drink-body">
+                        <div class="landing-drink-category">@prod.CategoryName.ToUpper()</div>
+                        <div class="landing-drink-name">@prod.ProductName</div>
+                        <div class="landing-drink-footer">
+                            <div class="landing-drink-price">
+                                Từ @prod.MinPrice.ToString("N0") đ
+                            </div>
+                            <a asp-controller="Customer" asp-action="Menu" asp-route-categoryId="@prod.CategoryId" 
+                               class="landing-drink-add-btn" 
+                               title="Xem và chọn món @prod.ProductName">
+                                <i class="bi bi-plus-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- 4. ABOUT SECTION (GIỚI THIỆU QUÁN) -->
+<section class="landing-about" id="about">
+    <div class="cafe-landing-container">
+        <div class="landing-about-row">
+            <!-- Left: Ambiance Photograph -->
+            <div class="landing-about-left">
+                <div class="landing-about-img-wrap">
+                    <img src="/images/landing/landing-ambiance.jpg" alt="Không gian quán Laura Café" 
+                         onerror="this.onerror=null; this.src='/images/products/default.jpg';" />
+                </div>
+            </div>
+
+            <!-- Right: Story Narrative -->
+            <div class="landing-about-right">
+                <div class="landing-about-eyebrow">VỀ LAURA CAFÉ</div>
+                <h2 class="landing-about-title">
+                    Một góc nhỏ,<br />
+                    cho những phút thảnh thơi.
+                </h2>
+                <p class="landing-about-desc">
+                    Khám phá hương vị cà phê Việt và những lựa chọn phù hợp với khẩu vị của bạn.
+                </p>
+                <a asp-controller="Customer" asp-action="Menu" class="landing-about-link">
+                    Khám phá câu chuyện &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 5. CALL TO ACTION BANNER (KÊU GỌI ĐẶT MÓN) -->
+<section class="landing-cta">
+    <div class="cafe-landing-container">
+        <div class="landing-cta-box">
+            <div>
+                <h3 class="landing-cta-title">Bạn đã chọn được món yêu thích?</h3>
+                <p class="landing-cta-subtitle">Khám phá thực đơn và đặt đồ uống ngay hôm nay.</p>
+            </div>
+            <div>
+                <a asp-controller="Customer" asp-action="Menu" class="landing-cta-btn">
+                    Đặt món ngay
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+

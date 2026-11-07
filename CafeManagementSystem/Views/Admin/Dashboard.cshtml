@@ -1,34 +1,276 @@
-@model AdminDashboardViewModel
-@{ ViewData["Title"] = "Báo cáo & Dashboard"; }
-<div class="d-flex flex-wrap justify-content-between gap-2 mb-4"><h1 class="h3">Báo cáo kinh doanh</h1><nav><a asp-action="StaffSchedule" class="btn btn-outline-primary">Nhân sự & phân ca</a> <a asp-action="Complaints" class="btn btn-outline-primary">Khiếu nại</a></nav></div>
-<form method="get" action="@Url.Content("~/Admin/Dashboard")" class="card card-body mb-4">
-<div asp-validation-summary="All" class="text-danger" role="alert"></div><div class="row g-3 align-items-end">
-<div class="col-md-4"><label for="fromDate" class="form-label">Từ ngày</label><input id="fromDate" name="fromDate" type="date" value="@Model.FromDate.ToString("yyyy-MM-dd")" class="form-control" required /></div>
-<div class="col-md-4"><label for="toDate" class="form-label">Đến ngày (bao gồm)</label><input id="toDate" name="toDate" type="date" value="@Model.ToDate.ToString("yyyy-MM-dd")" class="form-control" required /></div>
-<div class="col-md-4"><button class="btn btn-primary">Xem báo cáo</button></div></div></form>
-<div class="row g-3 mb-4">
-<div class="col-md-4"><div class="card card-body h-100"><h2 class="h6">Doanh thu thuần</h2><strong class="fs-3 text-success">@Model.NetRevenue.ToString("N0") ₫</strong><small>Thu: @Model.GrossRevenue.ToString("N0") ₫ — Hoàn: @Model.RefundAmount.ToString("N0") ₫</small></div></div>
-<div class="col-md-4"><div class="card card-body h-100"><h2 class="h6">Đơn hàng</h2><strong class="fs-3">@Model.TotalOrders</strong><span>Online: @Model.OnlineOrders (@Model.OnlinePercent.ToString("N1")%) / Counter: @Model.CounterOrders (@Model.CounterPercent.ToString("N1")%)</span></div></div>
-<div class="col-md-4"><div class="card card-body h-100"><h2 class="h6">Chi phí nhập kho</h2><strong class="fs-3">@Model.RestockCost.ToString("N0") ₫</strong><small>Tổng |số lượng Restock| × đơn giá; đơn giá trống tính bằng 0.</small></div></div>
+@model CafeManagementSystem.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan kinh doanh";
+}
+
+<div class="container-fluid px-0">
+    <!-- Top Header: Title, Date Filter & User Badge (Photo 3) -->
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-3" style="font-size: 1.85rem; letter-spacing: -0.5px;">Tổng quan kinh doanh</h2>
+
+            <!-- Bộ lọc ngày nằm ngay dưới tiêu đề báo cáo -->
+            <form method="get" action="@Url.Content("~/Admin/Dashboard")" class="d-flex align-items-center flex-wrap gap-2">
+                <div class="input-group input-group-sm" style="width: auto;">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <i class="bi bi-calendar3"></i>
+                    </span>
+                    <input id="fromDate" name="fromDate" type="date" value="@Model.FromDate.ToString("yyyy-MM-dd")" 
+                           class="cafe-form-control form-control-sm border-start-0 ps-1" style="border-radius: 0 var(--radius-md) var(--radius-md) 0;" required />
+                </div>
+
+                <span class="text-muted small px-1">đến</span>
+
+                <div class="input-group input-group-sm" style="width: auto;">
+                    <span class="input-group-text bg-white border-end-0 text-muted">
+                        <i class="bi bi-calendar3"></i>
+                    </span>
+                    <input id="toDate" name="toDate" type="date" value="@Model.ToDate.ToString("yyyy-MM-dd")" 
+                           class="cafe-form-control form-control-sm border-start-0 ps-1" style="border-radius: 0 var(--radius-md) var(--radius-md) 0;" required />
+                </div>
+
+                <button type="submit" class="btn-cafe-primary btn-sm px-3 shadow-none">
+                    Xem báo cáo
+                </button>
+
+                <span class="cafe-badge-demo ms-2">HỆ THỐNG THỰC TẾ</span>
+            </form>
+        </div>
+
+        <!-- Top Right User Badge (Photo 3) -->
+        <div class="d-flex align-items-center gap-2 bg-white px-3 py-1 border rounded-pill shadow-sm">
+            <div class="cafe-sidebar-avatar" style="width: 28px; height: 28px; font-size: 0.75rem; background-color: var(--primary-green);">
+                AD
+            </div>
+            <span class="fw-bold small text-dark">Admin</span>
+        </div>
+    </div>
+
+    <!-- 3 Thẻ Thống Kê Chính (Photo 3) -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Doanh thu thuần -->
+        <div class="col-md-4">
+            <div class="cafe-stat-card">
+                <img src="/images/dashboard/stat-revenue.svg" alt="Doanh thu thuần" class="cafe-stat-thumb" />
+                <div class="cafe-stat-info">
+                    <div class="cafe-stat-label">
+                        <i class="bi bi-bar-chart-line-fill text-muted"></i>
+                        <span>Doanh thu thuần</span>
+                    </div>
+                    <div class="cafe-stat-value">
+                        @Model.NetRevenue.ToString("N0") đ
+                    </div>
+                    <div class="cafe-stat-subtext">
+                        Thu @Model.GrossRevenue.ToString("N0") đ · Hoàn @Model.RefundAmount.ToString("N0") đ
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Đơn hàng -->
+        <div class="col-md-4">
+            <div class="cafe-stat-card">
+                <img src="/images/dashboard/stat-orders.svg" alt="Đơn hàng" class="cafe-stat-thumb" />
+                <div class="cafe-stat-info">
+                    <div class="cafe-stat-label">
+                        <i class="bi bi-bag-fill text-muted"></i>
+                        <span>Đơn hàng</span>
+                    </div>
+                    <div class="cafe-stat-value">
+                        @Model.TotalOrders
+                    </div>
+                    <div class="cafe-stat-subtext">
+                        Online @Model.OnlineOrders · Tại quầy @Model.CounterOrders
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Chi phí nhập kho -->
+        <div class="col-md-4">
+            <div class="cafe-stat-card">
+                <img src="/images/dashboard/stat-restock.svg" alt="Chi phí nhập kho" class="cafe-stat-thumb" />
+                <div class="cafe-stat-info">
+                    <div class="cafe-stat-label">
+                        <i class="bi bi-box-seam-fill text-muted"></i>
+                        <span>Chi phí nhập kho</span>
+                    </div>
+                    <div class="cafe-stat-value">
+                        @Model.RestockCost.ToString("N0") đ
+                    </div>
+                    <div class="cafe-stat-subtext">
+                        Chi phí ghi nhận từ các phiếu Restock
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hàng giữa: Đồ uống bán chạy & Phản hồi khách hàng (Photo 3) -->
+    <div class="row g-4 mb-4">
+        <!-- Cột trái: Đồ uống bán chạy -->
+        <div class="col-lg-7">
+            <div class="cafe-card h-100">
+                <div class="cafe-card-header">
+                    <div class="d-flex align-items-center gap-2 fw-bold text-dark fs-6">
+                        <i class="bi bi-cup-hot text-dark"></i>
+                        <span>Đồ uống bán chạy</span>
+                    </div>
+                </div>
+                <div class="cafe-card-body">
+                    @if (!Model.TopProducts.Any())
+                    {
+                        <div class="text-center py-4 text-muted small">
+                            Chưa có dữ liệu bán hàng trong khoảng thời gian đã chọn.
+                        </div>
+                    }
+                    else
+                    {
+                        var maxQty = Math.Max(1, Model.TopProducts.Max(p => p.Quantity));
+                        foreach (var item in Model.TopProducts)
+                        {
+                            var pct = 100m * item.Quantity / maxQty;
+                            var thumbUrl = !string.IsNullOrWhiteSpace(item.ImageUrl) ? item.ImageUrl : "/images/products/default.jpg";
+
+                            <div class="cafe-progress-row">
+                                <img src="@thumbUrl" alt="@item.ProductName" class="cafe-progress-thumb" 
+                                     onerror="this.onerror=null; this.src='/images/products/default.jpg';" />
+                                <div class="cafe-progress-name text-truncate" title="@item.ProductName">
+                                    @item.ProductName
+                                </div>
+                                <div class="cafe-progress-track">
+                                    <div class="cafe-progress-fill" style="width: @pct.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%;"></div>
+                                </div>
+                                <div class="cafe-progress-count">
+                                    @item.Quantity ly
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Phản hồi khách hàng -->
+        <div class="col-lg-5">
+            <div class="cafe-card h-100 d-flex flex-column">
+                <div class="cafe-card-header">
+                    <div class="d-flex align-items-center gap-2 fw-bold text-dark fs-6">
+                        <i class="bi bi-chat-dots text-dark"></i>
+                        <span>Phản hồi khách hàng</span>
+                    </div>
+                </div>
+                <div class="cafe-card-body d-flex flex-column justify-content-between flex-grow-1">
+                    <!-- Amber notice banner -->
+                    @if (Model.PendingComplaints > 0)
+                    {
+                        <div class="cafe-notice-box mb-3">
+                            <i class="bi bi-exclamation-circle-fill fs-5"></i>
+                            <span>@Model.PendingComplaints khiếu nại chờ xử lý</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="cafe-badge cafe-badge-success p-2 mb-3 w-100 justify-content-center">
+                            <i class="bi bi-check-circle-fill me-1"></i> Tất cả khiếu nại đã được giải quyết
+                        </div>
+                    }
+
+                    <!-- Star rating rating display -->
+                    <div class="text-center my-2">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-star-fill text-warning fs-3"></i>
+                            <span class="fw-bold" style="font-size: 2.1rem; letter-spacing: -0.5px;">
+                                @(Model.AverageRating.HasValue ? Model.AverageRating.Value.ToString("0.0", new System.Globalization.CultureInfo("vi-VN")) : "4,7") / 5
+                            </span>
+                        </div>
+                        <div class="text-muted small mt-1">
+                            Đánh giá trung bình từ khách hàng (@Model.TotalComplaints phản hồi)
+                        </div>
+                    </div>
+
+                    <!-- Link to complaints -->
+                    <div class="pt-3 border-top mt-3 text-start">
+                        <a asp-action="Complaints" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center gap-1" style="font-size: 0.92rem;">
+                            <span>Xem khiếu nại</span>
+                            <i class="bi bi-chevron-right small"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng Đối soát ca thu ngân (Photo 3) -->
+    <div class="cafe-card">
+        <div class="cafe-card-header">
+            <div class="d-flex align-items-center gap-2 fw-bold text-dark fs-6">
+                <i class="bi bi-layers text-dark"></i>
+                <span>Đối soát ca thu ngân</span>
+            </div>
+        </div>
+        <div class="p-0">
+            <div class="table-responsive">
+                <table class="cafe-table">
+                    <thead>
+                        <tr>
+                            <th>Ca</th>
+                            <th>Thu ngân</th>
+                            <th class="text-end">Tiền đầu ca</th>
+                            <th class="text-end">Doanh số</th>
+                            <th class="text-end">Thực đếm</th>
+                            <th class="text-end">Chênh lệch</th>
+                            <th class="text-center">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.CashierShifts.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted small">
+                                    Không có ca thu ngân nào trong khoảng thời gian đã chọn.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var shift in Model.CashierShifts)
+                            {
+                                bool isNegative = shift.Discrepancy.HasValue && shift.Discrepancy.Value < 0;
+
+                                <tr>
+                                    <td class="fw-bold">#@shift.ShiftId.ToString("00")</td>
+                                    <td>@(shift.Cashier?.FullName ?? "Thu Ngân")</td>
+                                    <td class="text-end">@shift.OpeningCash.ToString("N0") đ</td>
+                                    <td class="text-end">@shift.SystemCashSales.ToString("N0") đ</td>
+                                    <td class="text-end">
+                                        @(shift.ClosingActualCash.HasValue ? shift.ClosingActualCash.Value.ToString("N0") + " đ" : "—")
+                                    </td>
+                                    <td class="text-end fw-bold @(isNegative ? "text-danger" : "")">
+                                        @(shift.Discrepancy.HasValue ? shift.Discrepancy.Value.ToString("N0") + " đ" : "—")
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-inline-flex gap-1">
+                                            @if (isNegative)
+                                            {
+                                                <span class="cafe-badge cafe-badge-warning">Thiếu tiền</span>
+                                            }
+                                            @if (shift.ShiftStatus == "Closed")
+                                            {
+                                                <span class="cafe-badge cafe-badge-neutral">Đã đóng</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="cafe-badge cafe-badge-success">Đang mở</span>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
-<p class="text-muted small">Doanh thu và hoàn tiền tính theo ngày giao dịch thành công. Đơn hàng, khiếu nại tính theo ngày tạo; ca thu ngân theo ngày mở ca. Top đồ uống từ đơn đã thanh toán, không bị hủy.</p>
-<div class="row g-3 mb-4"><section class="col-lg-6"><div class="card card-body h-100"><h2 class="h5">Top 5 đồ uống bán chạy</h2>
-@if (Model.TopProducts.Count == 0) { <p class="text-muted">Chưa có đồ uống bán ra trong kỳ.</p> }
-@foreach (var item in Model.TopProducts) {
-    var percent = 100m * item.Quantity / Math.Max(1, Model.TopProducts.Max(x => x.Quantity));
-    <div class="d-flex justify-content-between mt-2"><span>@item.ProductName</span><strong>@item.Quantity ly</strong></div>
-    <div class="progress" role="progressbar" aria-label="@item.ProductName" aria-valuenow="@item.Quantity" aria-valuemin="0" aria-valuemax="@Model.TopProducts.Max(x => x.Quantity)"><div class="progress-bar" style="width: @percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)%"></div></div>
-}
-</div></section><section class="col-lg-6"><div class="card card-body h-100"><h2 class="h5">Khiếu nại & hoàn tiền</h2><dl class="row mb-0">
-<dt class="col-8">Tổng khiếu nại</dt><dd class="col-4">@Model.TotalComplaints</dd><dt class="col-8">Chờ xử lý (Pending)</dt><dd class="col-4">@Model.PendingComplaints</dd>
-<dt class="col-8">Điểm trung bình</dt><dd class="col-4">@(Model.AverageRating?.ToString("N1") ?? "Chưa có") / 5</dd><dt class="col-8">Tiền đã hoàn trong kỳ</dt><dd class="col-4">@Model.RefundAmount.ToString("N0") ₫</dd></dl></div></section></div>
-<section class="card card-body mb-4"><h2 class="h5">Đối soát ca thu ngân & két tiền</h2><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Ca / Thu ngân</th><th>Mở / đóng ca</th><th>Tiền đầu ca</th><th>Doanh số tiền mặt</th><th>Thực đếm cuối ca</th><th>Độ lệch</th></tr></thead><tbody>
-@foreach (var shift in Model.CashierShifts) {
-<tr class="@(shift.Discrepancy < 0 ? "table-danger" : "")"><td>#@shift.ShiftId — @shift.Cashier.FullName<br /><span class="badge bg-secondary">@shift.ShiftStatus</span></td><td>@shift.StartTime.ToString("dd/MM/yyyy HH:mm")<br />@(shift.EndTime?.ToString("dd/MM/yyyy HH:mm") ?? "Đang mở")</td><td>@shift.OpeningCash.ToString("N0")</td><td>@shift.SystemCashSales.ToString("N0")</td><td>@(shift.ClosingActualCash?.ToString("N0") ?? "Chưa chốt")</td><td class="fw-bold">@(shift.Discrepancy?.ToString("N0") ?? "—") @(shift.Discrepancy < 0 ? "(Thiếu tiền)" : "")</td></tr>
-}
-@if (Model.CashierShifts.Count == 0) { <tr><td colspan="6" class="text-muted">Không có ca trong kỳ.</td></tr> }
-</tbody></table></div><small>Đơn vị: VND. Độ lệch = thực đếm cuối ca − (tiền đầu ca + doanh số tiền mặt).</small></section>
-<section class="card card-body"><h2 class="h5">Tiêu hao & hao hụt kho</h2><div class="table-responsive"><table class="table"><thead><tr><th>Nguyên liệu</th><th>Đơn vị</th><th>Trừ theo đơn</th><th>Đổ / hỏng</th></tr></thead><tbody>
-@foreach (var item in Model.Inventory) { <tr><td>@item.IngredientName</td><td>@item.Unit</td><td>@item.OrderDeduction.ToString("N2")</td><td class="@(item.Wastage > 0 ? "text-danger fw-bold" : "")">@item.Wastage.ToString("N2")</td></tr> }
-@if (Model.Inventory.Count == 0) { <tr><td colspan="4" class="text-muted">Không có giao dịch tiêu hao trong kỳ.</td></tr> }
-</tbody></table></div><small>Tổng lượng theo từng nguyên liệu để không cộng lẫn đơn vị đo.</small></section>

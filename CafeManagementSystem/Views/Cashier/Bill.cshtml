@@ -8,114 +8,127 @@
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
             <!-- Thẻ Hóa Đơn (Receipt Card) -->
-            <div class="card shadow border-0 p-4 bg-white rounded-3" id="printArea">
-                <div class="text-center mb-3">
-                    <h4 class="fw-bold text-dark mb-0"><i class="bi bi-cup-hot-fill text-danger me-1"></i>CAFÉ CMS</h4>
-                    <p class="text-muted small mb-0">Địa chỉ: Khu CNC Hòa Lạc, Hà Nội</p>
-                    <p class="text-muted small mb-1">Hotline: 1900 8888</p>
-                    <h5 class="fw-bold text-primary mt-2">PHIẾU THANH TOÁN</h5>
-                    <div class="badge bg-light text-dark border">#@Model.OrderCode</div>
+            <div class="card border-0 shadow-sm p-4 p-md-5 rounded-4 overflow-hidden" 
+                 id="printArea"
+                 style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                
+                <div class="text-center mb-4 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2"
+                         style="width: 48px; height: 48px; background-color: var(--primary-green-light); color: var(--primary-green);">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 24px; height: 24px;">
+                            <path d="M2.08 14.88C1.52 11.23 2.74 7.42 5.56 4.6C8.38 1.78 12.19 0.56 15.84 1.12C16.89 1.28 17.84 1.84 18.5 2.68C19.86 4.41 19.34 6.89 17.65 8.58C16.48 9.75 14.85 10.45 13.15 10.74C10.66 11.17 8.35 12.35 6.64 14.06C5.46 15.24 3.79 16.03 2.08 14.88ZM21.92 9.12C22.48 12.77 21.26 16.58 18.44 19.4C15.62 22.22 11.81 23.44 8.16 22.88C7.11 22.72 6.16 22.16 5.5 21.32C4.14 19.59 4.66 17.11 6.35 15.42C7.52 14.25 9.15 13.55 10.85 13.26C13.34 12.83 15.65 11.65 17.36 9.94C18.54 8.76 20.21 7.97 21.92 9.12Z"/>
+                        </svg>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-0">Laura Café</h4>
+                    <p class="text-muted small fw-semibold text-uppercase mb-0" style="font-size: 0.72rem; letter-spacing: 0.8px;">Management System</p>
+                    <p class="text-muted small mb-0" style="font-size: 0.8rem;">Khu Công Nghệ Cao Hòa Lạc, Hà Nội</p>
+                    <p class="text-muted small mb-2" style="font-size: 0.8rem;">Hotline: 1900 8888</p>
+                    <h5 class="fw-bold text-dark mb-1">PHIẾU THANH TOÁN TẠI QUẦY</h5>
+                    <span class="badge rounded-pill px-3 py-1 fw-bold font-monospace" style="background-color: #F0ECE4; color: var(--text-main);">
+                        #@Model.OrderCode
+                    </span>
                 </div>
 
-                <div class="small border-top border-bottom py-2 my-2 text-muted">
+                <div class="small text-muted mb-3 d-flex flex-column gap-1" style="font-size: 0.85rem;">
                     <div class="d-flex justify-content-between">
-                        <span>Ngày tạo:</span>
-                        <span class="text-dark">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                        <span>Thời gian:</span>
+                        <span class="text-dark fw-semibold">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</span>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <span>Thu ngân (Cashier):</span>
-                        <span class="text-dark">@(Model.Cashier?.FullName ?? "Thu ngân")</span>
+                        <span>Thu ngân:</span>
+                        <span class="text-dark fw-semibold">@(Model.Cashier?.FullName ?? "Thu ngân")</span>
                     </div>
                     <div class="d-flex justify-content-between">
                         <span>Khách hàng:</span>
-                        <span class="text-dark">@(Model.Customer?.FullName ?? "Khách vãng lai")</span>
+                        <span class="text-dark fw-semibold">@(Model.Customer?.FullName ?? "Khách vãng lai")</span>
                     </div>
                     @if (Model.Customer != null)
                     {
                         <div class="d-flex justify-content-between">
                             <span>SĐT:</span>
-                            <span class="text-dark">@Model.Customer.Phone</span>
+                            <span class="text-dark fw-semibold">@Model.Customer.Phone</span>
                         </div>
                     }
-                    <div class="d-flex justify-content-between">
-                        <span>Hình thức thanh toán:</span>
-                        <span class="fw-bold text-primary">@(payment?.PaymentMethod == "Cash" ? "Tiền mặt (Cash)" : "Chuyển khoản (Transfer)")</span>
+                    <div class="d-flex justify-content-between mt-1 pt-1 border-top" style="border-color: var(--border-light) !important;">
+                        <span>Phương thức:</span>
+                        <span class="text-dark fw-bold">@(payment?.PaymentMethod == "Cash" ? "Tiền mặt (Cash)" : "Chuyển khoản (Transfer)")</span>
                     </div>
                 </div>
 
                 <!-- Bảng danh sách món nước -->
-                <table class="table table-sm border-bottom mb-3" style="font-size: 0.88rem;">
+                <table class="table table-sm align-middle mb-3" style="font-size: 0.88rem; border-top: 1px solid var(--border-color);">
                     <thead>
-                        <tr class="text-muted">
-                            <th>Tên món</th>
-                            <th class="text-center">SL</th>
-                            <th class="text-end">Đ.Giá</th>
-                            <th class="text-end">T.Tiền</th>
+                        <tr class="text-muted small">
+                            <th class="py-2">Tên món</th>
+                            <th class="text-center py-2">SL</th>
+                            <th class="text-end py-2">Đ.Giá</th>
+                            <th class="text-end py-2">T.Tiền</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model.OrderItems)
                         {
-                            <tr>
-                                <td>
-                                    <strong>@item.Variant.Product.ProductName</strong>
-                                    <span class="badge bg-light text-dark border">@item.Variant.SizeName</span>
-                                    <div class="text-muted" style="font-size: 0.75rem;">
-                                        Đường: @item.SugarLevel | Đá: @item.IceLevel
+                            <tr style="border-bottom: 1px solid var(--border-light);">
+                                <td class="py-2">
+                                    <div class="fw-bold text-dark">@item.Variant.Product.ProductName</div>
+                                    <div class="text-muted small" style="font-size: 0.75rem;">
+                                        Size @item.Variant.SizeName • @item.SugarLevel đường • @item.IceLevel đá
                                         @if (!string.IsNullOrEmpty(item.ItemNote))
                                         {
-                                            <span class="text-danger">(@item.ItemNote)</span>
+                                            <span style="color: var(--accent-caramel);">(@item.ItemNote)</span>
                                         }
                                     </div>
                                 </td>
-                                <td class="text-center align-middle">@item.Quantity</td>
-                                <td class="text-end align-middle">@item.UnitPrice.ToString("N0")</td>
-                                <td class="text-end align-middle fw-semibold">@((item.UnitPrice * item.Quantity).ToString("N0"))</td>
+                                <td class="text-center py-2 fw-bold">@item.Quantity</td>
+                                <td class="text-end text-muted small py-2">@item.UnitPrice.ToString("N0")</td>
+                                <td class="text-end fw-semibold py-2">@((item.UnitPrice * item.Quantity).ToString("N0"))</td>
                             </tr>
                         }
                     </tbody>
                 </table>
 
                 <!-- Tổng kết tiền -->
-                <div class="small mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="text-muted">Tạm tính:</span>
+                <div class="small d-flex flex-column gap-1 pt-1 border-top" style="border-color: var(--border-color) !important;">
+                    <div class="d-flex justify-content-between text-muted">
+                        <span>Tạm tính:</span>
                         <span>@Model.SubTotal.ToString("N0") đ</span>
                     </div>
                     @if (Model.DiscountAmount > 0)
                     {
-                        <div class="d-flex justify-content-between mb-1 text-success fw-semibold">
-                            <span>Giảm giá (@Model.LoyaltyPointsUsed điểm):</span>
+                        <div class="d-flex justify-content-between text-success fw-semibold">
+                            <span>Giảm giá dùng điểm (@Model.LoyaltyPointsUsed điểm):</span>
                             <span>-@Model.DiscountAmount.ToString("N0") đ</span>
                         </div>
                     }
-                    <div class="d-flex justify-content-between fs-5 fw-bold text-danger border-top pt-2">
-                        <span>TỔNG CỘNG:</span>
-                        <span>@Model.TotalAmount.ToString("N0") đ</span>
+                    <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2" style="border-color: var(--border-color) !important;">
+                        <span class="fw-bold fs-6 text-dark">TỔNG CỘNG:</span>
+                        <span class="fw-bold fs-4" style="color: var(--primary-green);">
+                            @Model.TotalAmount.ToString("N0") đ
+                        </span>
                     </div>
                 </div>
 
                 @if (Model.Customer != null)
                 {
-                    <div class="p-2 bg-light rounded text-center small text-muted mb-3 border">
-                        <i class="bi bi-star-fill text-warning me-1"></i> Điểm tích lũy mới nhận: <strong>+@Model.LoyaltyPointsEarned điểm</strong>.
-                        Tổng điểm hiện tại: <strong>@Model.Customer.LoyaltyPoints.ToString("N0") điểm</strong>.
+                    <div class="p-2 rounded-3 text-center small text-muted my-3" style="background-color: #FFF9F0; border: 1px dashed var(--accent-caramel); font-size: 0.78rem;">
+                        <i class="bi bi-stars me-1" style="color: var(--accent-caramel);"></i> Điểm tích lũy mới nhận: <strong style="color: var(--accent-caramel);">+@Model.LoyaltyPointsEarned điểm</strong>.
+                        Tổng điểm hiện có: <strong>@Model.Customer.LoyaltyPoints.ToString("N0") điểm</strong>.
                     </div>
                 }
 
-                <div class="text-center text-muted small mt-2">
-                    <p class="mb-1 fw-semibold">Cảm ơn Quý khách và hẹn gặp lại!</p>
-                    <p class="mb-0" style="font-size: 0.75rem;">Wifi: CafeCMS_Free | Mật khẩu: 88888888</p>
+                <div class="text-center text-muted small mt-3 pt-2 border-top" style="border-color: var(--border-light) !important;">
+                    <p class="mb-1 fw-bold text-dark">Cảm ơn Quý khách và hẹn gặp lại!</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.75rem;">Wifi: CafeCMS_Free | Mật khẩu: 88888888</p>
                 </div>
             </div>
 
             <!-- Nút bấm in & quay lại -->
-            <div class="d-flex gap-2 mt-4 no-print justify-content-center">
-                <button type="button" class="btn btn-outline-secondary px-4 fw-semibold" onclick="window.print()">
+            <div class="d-flex gap-2 mt-3 d-print-none justify-content-center">
+                <button type="button" class="btn btn-cafe-outline px-4 fw-semibold rounded-pill" onclick="window.print()">
                     <i class="bi bi-printer me-1"></i> In Hóa Đơn
                 </button>
-                <a asp-action="POS" class="btn btn-primary px-4 fw-semibold">
-                    <i class="bi bi-plus-circle me-1"></i> Tạo Đơn Mới Tiếp Theo
+                <a asp-action="POS" class="btn btn-cafe-primary px-4 fw-semibold rounded-pill">
+                    <i class="bi bi-plus-circle me-1"></i> Tạo Đơn Tiếp Theo
                 </a>
             </div>
         </div>
@@ -124,7 +137,7 @@
 
 <style>
     @@media print {
-        .no-print, header, footer, .navbar {
+        .d-print-none, header, footer, .cafe-sidebar, .cafe-customer-topbar {
             display: none !important;
         }
         #printArea {

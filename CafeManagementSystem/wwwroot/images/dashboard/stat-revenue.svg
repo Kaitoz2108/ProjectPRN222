@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="glassBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#F2EDE4" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="condensedMilk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF8E7"/>
+      <stop offset="100%" stop-color="#F4E8C1"/>
+    </linearGradient>
+    <linearGradient id="freshMilk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FAF7F2"/>
+      <stop offset="100%" stop-color="#EDE4D6"/>
+    </linearGradient>
+    <linearGradient id="espressoLayer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4A2E1B"/>
+      <stop offset="50%" stop-color="#6F4627"/>
+      <stop offset="100%" stop-color="#9C6B43"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#302A25" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Table shadow -->
+  <ellipse cx="100" cy="180" rx="42" ry="10" fill="#302A25" opacity="0.15" filter="url(#shadow)"/>
+
+  <!-- Glass Body -->
+  <path d="M68 40 L76 168 Q77 172 82 172 L118 172 Q123 172 124 168 L132 40 Z" fill="url(#glassBg)" filter="url(#shadow)"/>
+
+  <!-- Bottom Condensed Milk Layer -->
+  <path d="M75 142 L76 168 Q77 172 82 172 L118 172 Q123 172 124 168 L125 142 Q100 144 75 142 Z" fill="url(#condensedMilk)"/>
+
+  <!-- Middle Fresh Milk Layer -->
+  <path d="M72 88 L75 142 Q100 144 125 142 L128 88 Q100 90 72 88 Z" fill="url(#freshMilk)"/>
+
+  <!-- Swirl blending -->
+  <path d="M72 88 Q88 115 100 96 Q112 120 128 88 L131 46 Q100 48 69 46 Z" fill="url(#espressoLayer)"/>
+
+  <!-- Ice cubes inside glass -->
+  <rect x="80" y="65" width="22" height="22" rx="4" fill="#FFFFFF" fill-opacity="0.4" stroke="#FFF" stroke-width="1" transform="rotate(12 91 76)"/>
+  <rect x="102" y="82" width="20" height="20" rx="4" fill="#FFFFFF" fill-opacity="0.35" stroke="#FFF" stroke-width="1" transform="rotate(-15 112 92)"/>
+  <rect x="86" y="105" width="24" height="22" rx="4" fill="#FFFFFF" fill-opacity="0.3" stroke="#FFF" stroke-width="1" transform="rotate(8 98 116)"/>
+
+  <!-- Glass Rim & Highlights -->
+  <ellipse cx="100" cy="40" rx="32" ry="6" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.7"/>
+  <path d="M74 48 L80 162" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+  <path d="M126 48 L122 162" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Coffee beans scattered -->
+  <ellipse cx="50" cy="178" rx="6" ry="4" fill="#432616" transform="rotate(-20 50 178)"/>
+  <ellipse cx="62" cy="183" rx="5" ry="3.5" fill="#52311D" transform="rotate(25 62 183)"/>
+  <ellipse cx="146" cy="179" rx="5.5" ry="3.8" fill="#432616" transform="rotate(40 146 179)"/>
+</svg>
+

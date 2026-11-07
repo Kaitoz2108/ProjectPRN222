@@ -3,106 +3,132 @@
     ViewData["Title"] = "Quản Lý Thực Đơn & Công Thức";
 }
 
-<div class="container-fluid px-4 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<div class="container-fluid px-3 px-lg-4 py-3">
+    <!-- Header Toolbar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
         <div>
-            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-cup-straw text-danger me-2"></i>Quản Lý Thực Đơn & Định Lượng Công Thức (BOM)</h3>
-            <p class="text-muted mb-0">Cấu hình danh mục, sản phẩm, kích cỡ giá bán và công thức trừ kho tự động</p>
+            <h2 class="fw-bold text-dark mb-1">Quản lý thực đơn & Định lượng (BOM)</h2>
+            <p class="text-muted small mb-0">Cấu hình danh mục, sản phẩm, ảnh trực tiếp từ database, kích cỡ và định mức nguyên liệu</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-danger rounded-pill" data-bs-toggle="modal" data-bs-target="#modalAddCategory">
-                <i class="bi bi-folder-plus me-1"></i>Thêm Danh Mục
+            <button class="btn btn-cafe-outline rounded-pill btn-sm d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalAddCategory">
+                <i class="bi bi-folder-plus"></i> Thêm danh mục
             </button>
-            <button class="btn btn-danger rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddProduct">
-                <i class="bi bi-plus-circle me-1"></i>Thêm Món Mới
+            <button class="btn btn-cafe-primary rounded-pill btn-sm d-inline-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddProduct">
+                <i class="bi bi-plus-circle"></i> Thêm món mới
             </button>
         </div>
     </div>
 
-    <!-- Lọc danh mục -->
-    <div class="d-flex gap-2 mb-4 flex-wrap">
-        <a asp-action="Products" class="btn @(Model.SelectedCategoryId == null ? "btn-danger" : "btn-outline-danger") rounded-pill px-3">
+    <!-- Category Filter Pills -->
+    <div class="d-flex gap-2 mb-4 overflow-auto pb-1 flex-nowrap align-items-center">
+        <a asp-action="Products" 
+           class="btn text-nowrap rounded-pill px-3 py-1 fw-semibold @(Model.SelectedCategoryId == null ? "btn-cafe-primary" : "btn-cafe-secondary")"
+           style="font-size: 0.88rem;">
             Tất cả danh mục (@Model.Products.Count)
         </a>
         @foreach (var cat in Model.Categories)
         {
             <a asp-action="Products" asp-route-categoryId="@cat.CategoryId"
-               class="btn @(Model.SelectedCategoryId == cat.CategoryId ? "btn-danger" : "btn-outline-danger") rounded-pill px-3">
+               class="btn text-nowrap rounded-pill px-3 py-1 fw-semibold @(Model.SelectedCategoryId == cat.CategoryId ? "btn-cafe-primary" : "btn-cafe-secondary")"
+               style="font-size: 0.88rem;">
                 @cat.CategoryName
             </a>
         }
     </div>
 
-    <!-- Danh sách sản phẩm -->
+    <!-- Products Grid -->
     <div class="row g-4">
         @foreach (var prod in Model.Products)
         {
+            var imgUrl = !string.IsNullOrWhiteSpace(prod.ImageUrl) ? prod.ImageUrl : "/images/products/default.jpg";
+
             <div class="col-xl-6">
-                <div class="card shadow-sm border-0 rounded-4 overflow-hidden h-100">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-danger">@prod.Category.CategoryName</span>
-                            <h5 class="fw-bold mb-0 text-dark">@prod.ProductName</h5>
-                            <span class="badge @(prod.IsAvailable ? "bg-success" : "bg-secondary")">
-                                @(prod.IsAvailable ? "Đang bán" : "Tạm ngừng")
-                            </span>
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100" 
+                     style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                    
+                    <!-- Header with Product Image from Database -->
+                    <div class="card-header border-bottom p-3 d-flex justify-content-between align-items-center"
+                         style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="@imgUrl" 
+                                 alt="@prod.ProductName" 
+                                 class="cafe-thumb-md" 
+                                 onerror="this.onerror=null; this.src='/images/products/default.jpg';" />
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge rounded-pill bg-light text-dark border">@prod.Category.CategoryName</span>
+                                    <span class="cafe-badge @(prod.IsAvailable ? "cafe-badge-success" : "cafe-badge-neutral")">
+                                        @(prod.IsAvailable ? "Đang bán" : "Tạm ngừng")
+                                    </span>
+                                </div>
+                                <h5 class="fw-bold mb-0 text-dark mt-1">@prod.ProductName</h5>
+                            </div>
                         </div>
-                        <form asp-action="ToggleProductStatus" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="productId" value="@prod.ProductId" />
-                            <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
-                            <button type="submit" class="btn btn-sm @(prod.IsAvailable ? "btn-outline-secondary" : "btn-outline-success") rounded-pill">
-                                @(prod.IsAvailable ? "Ngừng bán" : "Bật bán")
+
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-cafe-outline rounded-pill py-1 px-2 small"
+                                    data-bs-toggle="modal" data-bs-target="#modalEditProduct-@prod.ProductId" title="Chỉnh sửa sản phẩm & ảnh">
+                                <i class="bi bi-pencil-square"></i>
                             </button>
-                        </form>
+
+                            <form asp-action="ToggleProductStatus" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@prod.ProductId" />
+                                <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
+                                <button type="submit" class="btn btn-sm btn-cafe-outline rounded-pill py-1 px-3 small">
+                                    @(prod.IsAvailable ? "Ngừng bán" : "Bật bán")
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                     <div class="card-body p-3">
                         <p class="text-muted small mb-3">@(prod.Description ?? "Chưa có mô tả.")</p>
 
                         <!-- Biến thể & Công thức -->
-                        <div class="fw-bold small text-secondary mb-2 d-flex justify-content-between align-items-center">
-                            <span>KÍCH CỠ & ĐỊNH LƯỢNG NGUYÊN LIỆU (RECIPES):</span>
-                            <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none"
+                        <div class="fw-bold small text-muted mb-2 d-flex justify-content-between align-items-center" style="font-size: 0.78rem;">
+                            <span>KÍCH CỠ & ĐỊNH LƯỢNG NGUYÊN LIỆU (BOM):</span>
+                            <button class="btn btn-sm btn-link text-decoration-none p-0 fw-bold" style="color: var(--primary-green); font-size: 0.8rem;"
                                     data-bs-toggle="modal" data-bs-target="#modalAddVariant-@prod.ProductId">
-                                <i class="bi bi-plus-circle me-1"></i>Thêm Size
+                                <i class="bi bi-plus-circle me-1"></i>Thêm kích cỡ (Size)
                             </button>
                         </div>
 
                         <div class="d-flex flex-column gap-2">
                             @foreach (var v in prod.ProductVariants.OrderBy(v => v.Price))
                             {
-                                <div class="bg-light p-3 rounded-3 border">
+                                <div class="p-3 rounded-3 border" style="background-color: #FFFFFF; border-color: var(--border-light) !important;">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
-                                            <span class="badge bg-dark fs-6">Size @v.SizeName</span>
-                                            <span class="fw-bold text-danger ms-2">@v.Price.ToString("N0") đ</span>
+                                            <span class="badge rounded-pill bg-light text-dark border fs-6">Size @v.SizeName</span>
+                                            <span class="fw-bold ms-2" style="color: var(--primary-green);">@v.Price.ToString("N0") đ</span>
                                             @if (!v.IsActive)
                                             {
-                                                <span class="badge bg-warning text-dark ms-1">Đã khóa</span>
+                                                <span class="badge rounded-pill bg-warning text-dark ms-1">Đã khóa</span>
                                             }
                                         </div>
-                                        <button class="btn btn-outline-primary btn-sm rounded-pill"
+                                        <button class="btn btn-cafe-outline btn-sm rounded-pill py-1 px-2 small"
                                                 data-bs-toggle="modal" data-bs-target="#modalAddRecipe-@v.VariantId">
-                                            <i class="bi bi-plus me-1"></i>Thêm nguyên liệu
+                                            <i class="bi bi-plus-lg me-1"></i>Thêm nguyên liệu
                                         </button>
                                     </div>
 
                                     @if (!v.ProductRecipes.Any())
                                     {
-                                        <div class="text-warning small fst-italic">
-                                            <i class="bi bi-exclamation-circle me-1"></i>Chưa thiết lập công thức (không trừ kho khi pha chế)
+                                        <div class="text-muted small fst-italic" style="color: var(--accent-caramel) !important; font-size: 0.78rem;">
+                                            <i class="bi bi-exclamation-circle me-1"></i>Chưa thiết lập định lượng (không trừ kho khi pha chế)
                                         </div>
                                     }
                                     else
                                     {
-                                        <ul class="list-unstyled mb-0 small">
+                                        <ul class="list-unstyled mb-0 small text-muted" style="font-size: 0.82rem;">
                                             @foreach (var r in v.ProductRecipes)
                                             {
-                                                <li class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                                                <li class="d-flex justify-content-between align-items-center py-1 border-bottom" style="border-color: var(--border-light) !important;">
                                                     <span>
                                                         <i class="bi bi-check2 text-success me-1"></i>
-                                                        <strong>@r.Ingredient.IngredientName:</strong> @r.QuantityRequired.ToString("0.##") @r.Ingredient.Unit
+                                                        <strong class="text-dark">@r.Ingredient.IngredientName:</strong> @r.QuantityRequired.ToString("0.##") @r.Ingredient.Unit
                                                         @if (!string.IsNullOrWhiteSpace(r.PreparationGuide))
                                                         {
                                                             <span class="text-muted">(@r.PreparationGuide)</span>
@@ -124,19 +150,19 @@
 
                                 <!-- Modal Thêm Nguyên Liệu cho Variant -->
                                 <div class="modal fade" id="modalAddRecipe-@v.VariantId" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content rounded-4">
-                                            <div class="modal-header bg-primary text-white">
-                                                <h5 class="modal-title fw-bold">Công Thức Cho @prod.ProductName (Size @v.SizeName)</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                                            <div class="modal-header border-bottom p-3" style="background-color: #FAF7F2;">
+                                                <h5 class="modal-title fw-bold text-dark">Công Thức Cho @prod.ProductName (Size @v.SizeName)</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <form asp-action="SaveRecipe" method="post">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="VariantId" value="@v.VariantId" />
                                                 <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
-                                                <div class="modal-body">
+                                                <div class="modal-body p-3">
                                                     <div class="mb-3">
-                                                        <label class="form-label fw-semibold">Chọn nguyên liệu:</label>
+                                                        <label class="form-label small fw-bold text-dark">Chọn nguyên liệu:</label>
                                                         <select name="IngredientId" class="form-select" required>
                                                             @foreach (var ing in Model.Ingredients)
                                                             {
@@ -145,17 +171,17 @@
                                                         </select>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label fw-semibold">Định lượng cần dùng cho 1 ly:</label>
+                                                        <label class="form-label small fw-bold text-dark">Định lượng cần cho 1 ly:</label>
                                                         <input type="number" step="0.01" name="QuantityRequired" class="form-control" placeholder="Ví dụ: 18 (gram) hoặc 40 (ml)" required />
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label fw-semibold">Hướng dẫn pha chế (tuỳ chọn):</label>
+                                                        <label class="form-label small fw-bold text-dark">Hướng dẫn pha chế (tuỳ chọn):</label>
                                                         <input type="text" name="PreparationGuide" class="form-control" placeholder="Ví dụ: Đong vào đáy ly, khuấy đều..." />
                                                     </div>
                                                 </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Đóng</button>
-                                                    <button type="submit" class="btn btn-primary rounded-pill">Lưu công thức</button>
+                                                <div class="modal-footer border-top p-3" style="background-color: #FAF7F2;">
+                                                    <button type="button" class="btn btn-cafe-outline btn-sm" data-bs-dismiss="modal">Đóng</button>
+                                                    <button type="submit" class="btn btn-cafe-primary btn-sm rounded-pill px-4 fw-bold">Lưu công thức</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -166,31 +192,91 @@
                     </div>
                 </div>
 
+                <!-- Modal Chỉnh Sửa Sản Phẩm & Ảnh -->
+                <div class="modal fade" id="modalEditProduct-@prod.ProductId" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                            <div class="modal-header border-bottom p-3" style="background-color: #FAF7F2;">
+                                <h5 class="modal-title fw-bold text-dark">
+                                    <i class="bi bi-pencil-square me-2" style="color: var(--primary-green);"></i>Chỉnh Sửa Món: @prod.ProductName
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form asp-action="UpdateProduct" method="post" enctype="multipart/form-data">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="ProductId" value="@prod.ProductId" />
+                                <input type="hidden" name="currentCategoryId" value="@Model.SelectedCategoryId" />
+                                
+                                <div class="modal-body p-3">
+                                    <div class="mb-3 text-center">
+                                        <label class="form-label small fw-bold text-dark d-block">Ảnh hiện tại trong Database:</label>
+                                        <img src="@imgUrl" alt="" class="rounded-3 border shadow-2xs mb-2" style="width: 90px; height: 90px; object-fit: cover;" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-dark">Thuộc danh mục:</label>
+                                        <select name="CategoryId" class="form-select form-select-sm" required>
+                                            @foreach (var c in Model.Categories)
+                                            {
+                                                <option value="@c.CategoryId" selected="@(prod.CategoryId == c.CategoryId)">@c.CategoryName</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-dark">Tên món:</label>
+                                        <input type="text" name="ProductName" value="@prod.ProductName" class="form-control form-control-sm" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-dark">Mô tả:</label>
+                                        <textarea name="Description" class="form-control form-control-sm" rows="2">@prod.Description</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-dark">Đường dẫn ảnh (URL hoặc đường dẫn nội bộ):</label>
+                                        <input type="text" name="ImageUrl" value="@prod.ImageUrl" class="form-control form-control-sm" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-dark">Hoặc tải lên tệp ảnh mới:</label>
+                                        <input type="file" name="ImageFile" class="form-control form-control-sm" accept="image/*" />
+                                    </div>
+                                    <div class="form-check p-2 rounded border" style="background-color: #FAF7F2;">
+                                        <input class="form-check-input ms-0 me-2" type="checkbox" name="IsAvailable" value="true" @(prod.IsAvailable ? "checked" : "") id="availCheck_@prod.ProductId" />
+                                        <label class="form-check-label small fw-bold text-dark" for="availCheck_@prod.ProductId">Đang phục vụ (Bán)</label>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-top p-3" style="background-color: #FAF7F2;">
+                                    <button type="button" class="btn btn-cafe-outline btn-sm" data-bs-dismiss="modal">Hủy</button>
+                                    <button type="submit" class="btn btn-cafe-primary btn-sm rounded-pill px-4 fw-bold">Cập nhật sản phẩm</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Modal Thêm Variant cho Product -->
                 <div class="modal fade" id="modalAddVariant-@prod.ProductId" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content rounded-4">
-                            <div class="modal-header bg-dark text-white">
-                                <h5 class="modal-title fw-bold">Thêm Kích Cỡ Cho @prod.ProductName</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                            <div class="modal-header border-bottom p-3" style="background-color: #FAF7F2;">
+                                <h5 class="modal-title fw-bold text-dark">Thêm Kích Cỡ Cho @prod.ProductName</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <form asp-action="SaveVariant" method="post">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="ProductId" value="@prod.ProductId" />
                                 <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
-                                <div class="modal-body">
+                                <div class="modal-body p-3">
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold">Tên kích cỡ:</label>
+                                        <label class="form-label small fw-bold text-dark">Tên kích cỡ:</label>
                                         <input type="text" name="SizeName" class="form-control" placeholder="S, M, L, XL..." required />
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold">Giá bán (VNĐ):</label>
+                                        <label class="form-label small fw-bold text-dark">Giá bán (VNĐ):</label>
                                         <input type="number" step="1000" name="Price" class="form-control" placeholder="Ví dụ: 35000" required />
                                     </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Đóng</button>
-                                    <button type="submit" class="btn btn-danger rounded-pill">Lưu kích cỡ</button>
+                                <div class="modal-footer border-top p-3" style="background-color: #FAF7F2;">
+                                    <button type="button" class="btn btn-cafe-outline btn-sm" data-bs-dismiss="modal">Đóng</button>
+                                    <button type="submit" class="btn btn-cafe-primary btn-sm rounded-pill px-4 fw-bold">Lưu kích cỡ</button>
                                 </div>
                             </form>
                         </div>
@@ -201,19 +287,21 @@
     </div>
 </div>
 
-<!-- Modal Tạo Sản Phẩm Mới -->
+<!-- Modal Tạo Sản Phẩm Mới (với Upload ảnh & ImageUrl) -->
 <div class="modal fade" id="modalAddProduct" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-4">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Thêm Món Mới Vào Thực Đơn</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom p-3" style="background-color: #FAF7F2;">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-plus-circle me-2" style="color: var(--primary-green);"></i>Thêm Món Mới Vào Thực Đơn
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form asp-action="CreateProduct" method="post">
+            <form asp-action="CreateProduct" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
-                <div class="modal-body">
+                <div class="modal-body p-3">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Thuộc danh mục:</label>
+                        <label class="form-label small fw-bold text-dark">Thuộc danh mục:</label>
                         <select name="CategoryId" class="form-select" required>
                             @foreach (var c in Model.Categories)
                             {
@@ -222,21 +310,25 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Tên sản phẩm / đồ uống:</label>
+                        <label class="form-label small fw-bold text-dark">Tên sản phẩm / đồ uống:</label>
                         <input type="text" name="ProductName" class="form-control" placeholder="Ví dụ: Cà Phê Muối, Trà Sữa Oolong..." required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Mô tả sản phẩm:</label>
+                        <label class="form-label small fw-bold text-dark">Mô tả sản phẩm:</label>
                         <textarea name="Description" class="form-control" rows="2" placeholder="Hương vị, thành phần nổi bật..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Đường dẫn ảnh (tuỳ chọn):</label>
-                        <input type="text" name="ImageUrl" class="form-control" placeholder="/images/products/cf-muoi.jpg" />
+                        <label class="form-label small fw-bold text-dark">Đường dẫn ảnh (hoặc link web):</label>
+                        <input type="text" name="ImageUrl" class="form-control form-control-sm" placeholder="/images/products/cf-muoi.jpg" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Hoặc tải lên tệp ảnh trực tiếp:</label>
+                        <input type="file" name="ImageFile" class="form-control form-control-sm" accept="image/*" />
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-danger rounded-pill">Tạo món mới</button>
+                <div class="modal-footer border-top p-3" style="background-color: #FAF7F2;">
+                    <button type="button" class="btn btn-cafe-outline btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-cafe-primary btn-sm rounded-pill px-4 fw-bold">Tạo món mới</button>
                 </div>
             </form>
         </div>
@@ -245,30 +337,31 @@
 
 <!-- Modal Tạo Danh Mục Mới -->
 <div class="modal fade" id="modalAddCategory" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content rounded-4">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title fw-bold"><i class="bi bi-folder-plus me-2"></i>Thêm Danh Mục Thực Đơn Mới</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom p-3" style="background-color: #FAF7F2;">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-folder-plus me-2" style="color: var(--primary-green);"></i>Thêm Danh Mục Mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="CreateCategory" method="post">
                 @Html.AntiForgeryToken()
-                <div class="modal-body">
+                <div class="modal-body p-3">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Tên danh mục:</label>
-                        <input type="text" name="CategoryName" class="form-control" placeholder="Ví dụ: Cà phê Đặc sản, Trà Sữa..." required />
+                        <label class="form-label small fw-bold text-dark">Tên danh mục:</label>
+                        <input type="text" name="CategoryName" class="form-control" placeholder="Ví dụ: Cà phê Đặc sản, Trà Hoa Quả..." required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Mô tả:</label>
+                        <label class="form-label small fw-bold text-dark">Mô tả:</label>
                         <textarea name="Description" class="form-control" rows="2" placeholder="Mô tả về nhóm đồ uống này"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-danger rounded-pill">Lưu danh mục</button>
+                <div class="modal-footer border-top p-3" style="background-color: #FAF7F2;">
+                    <button type="button" class="btn btn-cafe-outline btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-cafe-primary btn-sm rounded-pill px-4 fw-bold">Lưu danh mục</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-

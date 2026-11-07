@@ -1,32 +1,832 @@
-html {
-  font-size: 14px;
+/* =========================================================================
+   LAURA CAFÉ MANAGEMENT SYSTEM - DESIGN SYSTEM & THEME
+   Warm Cream (#F7F4EE) & Deep Sage Green (#355746) Aesthetic
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-main: #F7F4EE;
+  --surface-card: #FFFDF9;
+  --surface-card-hover: #FFFFFF;
+  --text-main: #302A25;
+  --text-muted: #7A7269;
+  --text-light: #A39B91;
+  
+  --primary-green: #355746;
+  --primary-green-hover: #2B4739;
+  --primary-green-active: #21372C;
+  --primary-green-light: #EBF1ED;
+  --primary-green-subtle: #F0F5F2;
+
+  --sidebar-bg: #284436;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active: #3C614E;
+  --sidebar-text: rgba(255, 255, 255, 0.82);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.55);
+
+  --accent-caramel: #B78359;
+  --accent-caramel-hover: #9E6F48;
+  --accent-caramel-light: #FBF4EE;
+
+  --border-color: #E6E0D6;
+  --border-subtle: #ECE6DD;
+  --border-light: #F2ECE3;
+
+  --status-success: #2E7D32;
+  --status-success-bg: #EAF5EA;
+  --status-warning: #B76E00;
+  --status-warning-bg: #FDF3E7;
+  --status-danger: #C62828;
+  --status-danger-bg: #FDF0F0;
+  --status-info: #0A6699;
+  --status-info-bg: #EDF6FB;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 50px;
+
+  --shadow-sm: 0 1px 3px rgba(48, 42, 37, 0.04), 0 1px 2px rgba(48, 42, 37, 0.02);
+  --shadow-md: 0 4px 12px rgba(48, 42, 37, 0.06), 0 1px 3px rgba(48, 42, 37, 0.04);
+  --shadow-lg: 0 10px 25px rgba(48, 42, 37, 0.08), 0 3px 6px rgba(48, 42, 37, 0.04);
 }
 
+/* Base Elements */
+html, body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--primary-green);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+a:hover {
+  color: var(--primary-green-hover);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+/* =========================================================================
+   LAYOUT SYSTEM: SIDEBAR & TOPBAR ARCHITECTURE
+   ========================================================================= */
+
+/* For Customer & Public (Horizontal Topbar) */
+.cafe-customer-topbar {
+  background-color: var(--surface-card);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+.cafe-customer-brand {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary-green);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.cafe-customer-brand:hover {
+  color: var(--primary-green-hover);
+}
+.cafe-brand-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.cafe-sidebar-brand .cafe-brand-icon {
+  color: #FFFFFF;
+}
+.cafe-customer-brand .cafe-brand-icon {
+  color: var(--primary-green);
+}
+.cafe-nav-link {
+  font-weight: 600;
+  color: var(--text-main);
+  padding: 8px 16px !important;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+  font-size: 0.93rem;
+}
+.cafe-nav-link:hover {
+  color: var(--primary-green);
+  background-color: var(--primary-green-light);
+}
+.cafe-nav-link.active {
+  color: var(--primary-green);
+  background-color: var(--primary-green-light);
+}
+
+/* For Staff & Admin: Sidebar App Layout */
+.cafe-app-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+.cafe-sidebar {
+  width: 250px;
+  background-color: var(--sidebar-bg);
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 1030;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+.cafe-sidebar-brand {
+  padding: 24px 20px 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #FFFFFF;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+.cafe-sidebar-section-title {
+  padding: 12px 20px 6px 20px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--sidebar-text-muted);
+}
+.cafe-sidebar-nav {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow-y: auto;
+}
+.cafe-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--sidebar-text);
+  font-weight: 600;
+  font-size: 0.92rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+.cafe-sidebar-link i {
+  font-size: 1.15rem;
+  width: 20px;
+  text-align: center;
+  opacity: 0.85;
+}
+.cafe-sidebar-link:hover {
+  color: #FFFFFF;
+  background-color: var(--sidebar-hover);
+}
+.cafe-sidebar-link.active {
+  color: #FFFFFF;
+  background-color: var(--sidebar-active);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.cafe-sidebar-link.active i {
+  opacity: 1;
+}
+.cafe-sidebar-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 10px 14px;
+}
+.cafe-sidebar-footer {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.cafe-sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #FFFFFF;
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
+}
+.cafe-sidebar-user:hover {
+  background-color: var(--sidebar-hover);
+  color: #FFFFFF;
+}
+.cafe-sidebar-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--sidebar-active);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.cafe-main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-main);
+}
+.cafe-app-body {
+  padding: 24px 32px 48px 32px;
+  flex: 1;
+}
+
+/* =========================================================================
+   COMPONENTS: CARDS, BUTTONS, BADGES, TABLES, INPUTS
+   ========================================================================= */
+
+/* Cards */
+.cafe-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.cafe-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-color);
+}
+.cafe-card-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cafe-card-body {
+  padding: 22px;
+}
+.cafe-card-footer {
+  padding: 16px 22px;
+  border-top: 1px solid var(--border-subtle);
+  background-color: transparent;
+}
+
+/* Metric / Stat Card (As in Photo 3) */
+.cafe-stat-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cafe-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.cafe-stat-thumb {
+  width: 76px;
+  height: 76px;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.cafe-stat-info {
+  flex: 1;
+  min-width: 0;
+}
+.cafe-stat-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.cafe-stat-value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.cafe-stat-subtext {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Buttons */
+.btn-cafe-primary {
+  background-color: var(--primary-green);
+  border: 1px solid var(--primary-green);
+  color: #FFFFFF !important;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  padding: 8px 20px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+.btn-cafe-primary:hover, .btn-cafe-primary:focus {
+  background-color: var(--primary-green-hover);
+  border-color: var(--primary-green-hover);
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 10px rgba(53, 87, 70, 0.25);
+}
+.btn-cafe-primary:active {
+  background-color: var(--primary-green-active);
+  border-color: var(--primary-green-active);
+}
+
+.btn-cafe-outline {
+  background-color: transparent;
+  border: 1.5px solid var(--border-color);
+  color: var(--text-main) !important;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  padding: 8px 18px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.92rem;
+}
+.btn-cafe-outline:hover {
+  background-color: var(--surface-card);
+  border-color: var(--primary-green);
+  color: var(--primary-green) !important;
+}
+
+.btn-cafe-caramel {
+  background-color: var(--accent-caramel);
+  border: 1px solid var(--accent-caramel);
+  color: #FFFFFF !important;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  padding: 8px 20px;
+  transition: all 0.2s ease;
+}
+.btn-cafe-caramel:hover {
+  background-color: var(--accent-caramel-hover);
+  border-color: var(--accent-caramel-hover);
+  color: #FFFFFF !important;
+}
+
+/* Category Filter Pills */
+.cafe-filter-pill {
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-card);
+  color: var(--text-main);
+  padding: 7px 18px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: all 0.18s ease;
+  display: inline-block;
+  text-decoration: none;
+}
+.cafe-filter-pill:hover {
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+  background-color: #FFFFFF;
+}
+.cafe-filter-pill.active {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(53, 87, 70, 0.2);
+}
+
+/* Product Card in Menu (Photo 1) */
+.cafe-product-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.2s ease;
+}
+.cafe-product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-color);
+}
+.cafe-product-img-wrap {
+  width: 100%;
+  height: 250px;
+  background-color: #EDE6DC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px 15px 0 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.cafe-product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+}
+.cafe-modal-img-wrap {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  background-color: #EDE6DC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
+  .cafe-modal-img-wrap {
+    border-radius: 16px 0 0 16px;
   }
 }
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+@media (max-width: 767.98px) {
+  .cafe-modal-img-wrap {
+    height: 220px;
+    min-height: 220px;
+    border-radius: 16px 16px 0 0;
+  }
+}
+.product-card-hover,
+.cafe-product-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.product-card-hover:hover,
+.cafe-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(48, 42, 37, 0.08) !important;
+}
+.product-card-hover:hover .cafe-product-img,
+.cafe-product-card:hover .cafe-product-img,
+.product-card-hover:hover img.object-fit-cover {
+  transform: scale(1.05);
 }
 
-html {
+/* POS Specific Drink Grid Image Styling */
+.pos-prod-img-wrap {
+  width: 100%;
+  height: 135px;
+  background: radial-gradient(circle at center, #FAF7F2 0%, #EDE6DC 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  min-height: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.pos-prod-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  transition: transform 0.35s ease;
+}
+.pos-prod-card:hover .pos-prod-img,
+.pos-prod-card:hover img.object-fit-cover {
+  transform: scale(1.06);
 }
 
-body {
-  margin-bottom: 60px;
+/* Universal Clean Thumbnail Elements */
+.cafe-thumb-sm {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  object-position: center;
+  border: 1px solid var(--border-color);
+  background-color: #FAF7F2;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(48, 42, 37, 0.05);
+}
+.cafe-thumb-md {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  object-position: center;
+  border: 1px solid var(--border-color);
+  background-color: #FAF7F2;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(48, 42, 37, 0.06);
+}
+.cafe-product-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background-color: rgba(255, 253, 249, 0.92);
+  backdrop-filter: blur(4px);
+  color: var(--text-main);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+}
+.cafe-product-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.cafe-product-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text-main);
+}
+.cafe-product-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  flex-grow: 1;
+  line-height: 1.45;
+}
+.cafe-product-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+.cafe-product-price-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.cafe-product-price {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
 }
 
-/* Hiệu ứng ẩn mượt mà cho các thông báo (Alerts) */
+/* Badges / Status Pills */
+.cafe-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.cafe-badge-success {
+  background-color: var(--status-success-bg);
+  color: var(--status-success);
+}
+.cafe-badge-warning {
+  background-color: var(--status-warning-bg);
+  color: var(--status-warning);
+}
+.cafe-badge-danger {
+  background-color: var(--status-danger-bg);
+  color: var(--status-danger);
+}
+.cafe-badge-neutral {
+  background-color: #EDE8DE;
+  color: var(--text-muted);
+}
+.cafe-badge-demo {
+  background-color: #EDE8DE;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+/* Tables (Photo 3) */
+.cafe-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.92rem;
+}
+.cafe-table th {
+  background-color: #F8F5EE;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-color);
+}
+.cafe-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+.cafe-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+.cafe-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Form Controls */
+.cafe-form-control, .form-control, .form-select {
+  background-color: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-size: 0.92rem;
+  padding: 9px 14px;
+  transition: all 0.2s ease;
+}
+.cafe-form-control:focus, .form-control:focus, .form-select:focus {
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(53, 87, 70, 0.15);
+  outline: none;
+  background-color: #FFFFFF;
+}
+
+/* Horizontal Progress Bars for Best-Sellers (Photo 3) */
+.cafe-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.cafe-progress-row:last-child {
+  margin-bottom: 0;
+}
+.cafe-progress-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  object-position: center;
+  flex-shrink: 0;
+  background-color: #FAF7F2;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(48, 42, 37, 0.05);
+}
+.cafe-progress-name {
+  width: 120px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  flex-shrink: 0;
+}
+.cafe-progress-track {
+  flex: 1;
+  height: 18px;
+  background-color: #EDE7DC;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  position: relative;
+}
+.cafe-progress-fill {
+  height: 100%;
+  background-color: #7B9B7B; /* Sage green */
+  border-radius: var(--radius-pill);
+  transition: width 0.6s ease;
+}
+.cafe-progress-count {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  width: 50px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Notice / Amber Box (Photo 3) */
+.cafe-notice-box {
+  background-color: var(--status-warning-bg);
+  border: 1px solid #F5DEB8;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--status-warning);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+/* Modals */
+.modal-content {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+.modal-header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 18px 24px;
+}
+.modal-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 16px 24px;
+}
+
+/* POS Specific Layouts (Photo 2) */
+.cafe-pos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+.cafe-pos-item-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+.cafe-pos-item-card:hover {
+  border-color: var(--primary-green);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.cafe-pos-ticket {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  position: sticky;
+  top: 24px;
+  box-shadow: var(--shadow-md);
+}
+
+/* Smooth Alert Dismissal */
 .alert.fade {
   transition: opacity 0.4s ease-out, transform 0.4s ease-out, margin 0.4s ease-out, padding 0.4s ease-out;
 }
-
 .alert:not(.show) {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+/* Responsive Rules */
+@media (max-width: 991.98px) {
+  .cafe-app-wrapper {
+    flex-direction: column;
+  }
+  .cafe-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .cafe-sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 8px 12px;
+  }
+  .cafe-app-body {
+    padding: 20px 16px 40px 16px;
+  }
+  .cafe-pos-ticket {
+    height: auto;
+    position: static;
+  }
 }

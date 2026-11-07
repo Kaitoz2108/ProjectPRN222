@@ -1,20 +1,21 @@
 @{
-    ViewData["Title"] = "Từ Chối Truy Cập";
+    ViewData["Title"] = "Từ Chối Quyền Truy Cập";
 }
 
 <div class="row justify-content-center py-5">
     <div class="col-md-6 text-center">
-        <div class="card shadow-sm border-0 p-5">
-            <div class="mb-3 text-danger">
-                <i class="bi bi-shield-slash fs-1" style="font-size: 4rem !important;"></i>
+        <div class="card border-0 shadow-sm rounded-4 p-5" 
+             style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+            <div class="mb-3" style="color: var(--status-danger);">
+                <i class="bi bi-shield-x fs-1" style="font-size: 3.5rem !important;"></i>
             </div>
-            <h3 class="fw-bold text-danger mb-2">Từ Chối Truy Cập</h3>
-            <p class="text-muted mb-4">
-                Tài khoản của bạn không có quyền truy cập vào chức năng hoặc trang này. Vui lòng liên hệ Admin nếu bạn cần cấp quyền.
+            <h3 class="fw-bold text-dark mb-2">Từ Chối Quyền Truy Cập</h3>
+            <p class="text-muted mb-4 small" style="max-width: 420px; margin: 0 auto;">
+                Tài khoản của bạn hiện không có quyền truy cập vào phân hệ này. Vui lòng liên hệ Quản trị viên (Admin) nếu cần cấp thêm quyền hạn.
             </p>
             <div>
-                <a asp-controller="Account" asp-action="Login" class="btn btn-primary px-4">
-                    <i class="bi bi-arrow-left me-1"></i> Quay Về Trang Chủ
+                <a asp-controller="Account" asp-action="Login" class="btn btn-cafe-primary rounded-pill px-4 fw-bold">
+                    <i class="bi bi-arrow-left me-1"></i> Quay Lại Đăng Nhập
                 </a>
             </div>
         </div>

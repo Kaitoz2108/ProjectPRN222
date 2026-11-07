@@ -55,12 +55,26 @@ public partial class AdminController
             return RedirectToAction(nameof(Products), new { categoryId = input.CategoryId });
         }
 
+        string? imgPath = input.ImageUrl?.Trim();
+        if (input.ImageFile != null && input.ImageFile.Length > 0)
+        {
+            var fileName = $"{Guid.NewGuid():N}_{Path.GetFileName(input.ImageFile.FileName)}";
+            var saveFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "products");
+            Directory.CreateDirectory(saveFolder);
+            var fullPath = Path.Combine(saveFolder, fileName);
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await input.ImageFile.CopyToAsync(stream);
+            }
+            imgPath = $"/images/products/{fileName}";
+        }
+
         var product = new Product
         {
             CategoryId = input.CategoryId,
             ProductName = input.ProductName.Trim(),
             Description = input.Description?.Trim(),
-            ImageUrl = string.IsNullOrWhiteSpace(input.ImageUrl) ? "/images/products/default.jpg" : input.ImageUrl.Trim(),
+            ImageUrl = string.IsNullOrWhiteSpace(imgPath) ? "/images/products/default.jpg" : imgPath,
             IsAvailable = input.IsAvailable
         };
 
@@ -79,6 +93,44 @@ public partial class AdminController
 
         TempData["SuccessMessage"] = $"Đã tạo mới sản phẩm '{product.ProductName}' kèm Size M mặc định.";
         return RedirectToAction(nameof(Products), new { categoryId = input.CategoryId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateProduct(AdminUpdateProductInput input, int? currentCategoryId)
+    {
+        var product = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == input.ProductId);
+        if (product == null)
+        {
+            TempData["ErrorMessage"] = "Không tìm thấy sản phẩm cần cập nhật.";
+            return RedirectToAction(nameof(Products), new { categoryId = currentCategoryId });
+        }
+
+        product.CategoryId = input.CategoryId;
+        product.ProductName = input.ProductName.Trim();
+        product.Description = input.Description?.Trim();
+        product.IsAvailable = input.IsAvailable;
+
+        if (input.ImageFile != null && input.ImageFile.Length > 0)
+        {
+            var fileName = $"{Guid.NewGuid():N}_{Path.GetFileName(input.ImageFile.FileName)}";
+            var saveFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "products");
+            Directory.CreateDirectory(saveFolder);
+            var fullPath = Path.Combine(saveFolder, fileName);
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await input.ImageFile.CopyToAsync(stream);
+            }
+            product.ImageUrl = $"/images/products/{fileName}";
+        }
+        else if (!string.IsNullOrWhiteSpace(input.ImageUrl))
+        {
+            product.ImageUrl = input.ImageUrl.Trim();
+        }
+
+        await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = $"Đã cập nhật thông tin và ảnh sản phẩm '{product.ProductName}'.";
+        return RedirectToAction(nameof(Products), new { categoryId = currentCategoryId });
     }
 
     [HttpPost]

@@ -1,105 +1,143 @@
 @model CafeManagementSystem.Models.ViewModels.MyOrdersViewModel
 @{
-    ViewData["Title"] = "Đơn Hàng Của Tôi";
+    ViewData["Title"] = "Lịch Sử Đơn Hàng Của Tôi";
 }
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h3 class="fw-bold text-dark mb-1"><i class="bi bi-clock-history text-danger me-2"></i>Lịch Sử Đơn Hàng Của Bạn</h3>
-            <p class="text-muted mb-0">Theo dõi tiến trình pha chế, giao hàng và hóa đơn các đơn đã đặt</p>
+            <h2 class="fw-bold text-dark mb-1">Đơn hàng của tôi</h2>
+            <p class="text-muted small mb-0">Theo dõi tiến trình pha chế, giao hàng và xem lại hóa đơn các đơn đã đặt</p>
         </div>
-        <a asp-action="Menu" class="btn btn-danger rounded-pill px-4">
-            <i class="bi bi-cup-straw me-1"></i>Đặt thêm đồ uống
+        <a asp-action="Menu" class="btn btn-cafe-primary rounded-pill px-4 py-2 fw-semibold">
+            <i class="bi bi-cup-straw me-1"></i> Đặt thêm đồ uống
         </a>
     </div>
 
     @if (!Model.Orders.Any())
     {
-        <div class="card shadow-sm border-0 rounded-4 text-center py-5">
-            <div class="card-body">
-                <i class="bi bi-inbox text-muted" style="font-size: 5rem;"></i>
-                <h4 class="fw-bold text-secondary mt-3">Bạn chưa có đơn hàng nào</h4>
-                <p class="text-muted">Hãy đặt những ly cà phê hoặc trà đầu tiên để thưởng thức nhé!</p>
-                <a asp-action="Menu" class="btn btn-danger rounded-pill px-4 mt-2">Xem thực đơn ngay</a>
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5"
+             style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+            <div class="card-body py-5">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                     style="width: 80px; height: 80px; background-color: #F0ECE4; color: var(--text-muted);">
+                    <i class="bi bi-inbox fs-1"></i>
+                </div>
+                <h4 class="fw-bold text-dark">Bạn chưa có đơn hàng nào</h4>
+                <p class="text-muted small mb-4">Hãy đặt ly cà phê hoặc trà đầu tiên để trải nghiệm dịch vụ của Laura Café nhé!</p>
+                <a asp-action="Menu" class="btn btn-cafe-primary rounded-pill px-4 py-2 fw-semibold">Xem thực đơn ngay</a>
             </div>
         </div>
     }
     else
     {
-        <div class="row g-3">
+        <div class="d-flex flex-column gap-3">
             @foreach (var ord in Model.Orders)
             {
                 var payment = ord.PaymentTransactions.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
                 var delivery = ord.Delivery;
-                string statusBadgeClass = ord.PreparationStatus switch
+                
+                string prepStatusClass = ord.PreparationStatus switch
                 {
-                    "Ready" => "bg-success",
-                    "Preparing" => "bg-warning text-dark",
-                    "Completed" => "bg-primary",
-                    "Cancelled" => "bg-danger",
-                    _ => "bg-secondary"
+                    "Ready" => "cafe-badge-success",
+                    "Preparing" => "cafe-badge-warning",
+                    "Completed" => "cafe-badge-success",
+                    "Cancelled" => "cafe-badge-danger",
+                    _ => "cafe-badge-neutral"
                 };
 
-                <div class="col-12">
-                    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom">
-                            <div>
-                                <span class="fw-bold fs-5 text-primary me-2">#@ord.OrderCode</span>
-                                <span class="badge @statusBadgeClass">@ord.PreparationStatus</span>
-                                @if (delivery != null)
-                                {
-                                    <span class="badge bg-info text-dark ms-1">
-                                        <i class="bi bi-bicycle me-1"></i>Giao: @delivery.DeliveryStatus
-                                    </span>
-                                }
-                            </div>
-                            <div class="small text-muted">
-                                <i class="bi bi-calendar3 me-1"></i>@ord.CreatedAt.ToString("dd/MM/yyyy HH:mm")
-                            </div>
-                        </div>
+                string prepStatusText = ord.PreparationStatus switch
+                {
+                    "Ready" => "Sẵn sàng phục vụ",
+                    "Preparing" => "Đang pha chế",
+                    "Completed" => "Đã hoàn thành",
+                    "Cancelled" => "Đã hủy",
+                    _ => "Chờ tiếp nhận"
+                };
 
-                        <div class="card-body p-3">
-                            <div class="row align-items-center">
-                                <div class="col-md-7 mb-2 mb-md-0">
-                                    <div class="fw-semibold mb-1">Chi tiết đồ uống:</div>
-                                    <ul class="list-unstyled mb-0 small text-secondary">
-                                        @foreach (var item in ord.OrderItems)
-                                        {
-                                            <li>
-                                                <i class="bi bi-dot text-danger"></i>
-                                                <strong>@item.Quantity x</strong> @(item.Variant?.Product?.ProductName ?? "Sản phẩm")
-                                                (Size @(item.Variant?.SizeName ?? ""))
-                                                <span class="text-muted">- @((item.UnitPrice * item.Quantity).ToString("N0")) đ</span>
-                                            </li>
-                                        }
-                                    </ul>
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden"
+                     style="background-color: var(--surface-card); border: 1px solid var(--border-color) !important;">
+                    
+                    <div class="card-header p-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom"
+                         style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="fw-bold fs-6" style="color: var(--primary-green);">#@ord.OrderCode</span>
+                            <span class="cafe-badge @prepStatusClass">
+                                <i class="bi bi-dot"></i> @prepStatusText
+                            </span>
+
+                            @if (delivery != null)
+                            {
+                                string delivStatusText = delivery.DeliveryStatus switch
+                                {
+                                    "Delivered" => "Đã giao hàng",
+                                    "Delivering" => "Đang trên đường giao",
+                                    "Failed" => "Giao thất bại",
+                                    _ => "Chờ shipper nhận đơn"
+                                };
+                                string delivBadgeClass = delivery.DeliveryStatus switch
+                                {
+                                    "Delivered" => "cafe-badge-success",
+                                    "Delivering" => "cafe-badge-warning",
+                                    "Failed" => "cafe-badge-danger",
+                                    _ => "cafe-badge-neutral"
+                                };
+
+                                <span class="cafe-badge @delivBadgeClass ms-1">
+                                    <i class="bi bi-bicycle me-1"></i>@delivStatusText
+                                </span>
+                            }
+                        </div>
+                        <div class="small text-muted" style="font-size: 0.82rem;">
+                            <i class="bi bi-calendar3 me-1"></i>@ord.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                    </div>
+
+                    <div class="card-body p-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-7 mb-3 mb-md-0">
+                                <div class="small fw-bold text-dark mb-2">Đồ uống đã gọi:</div>
+                                <div class="d-flex flex-column gap-1">
+                                    @foreach (var item in ord.OrderItems)
+                                    {
+                                        <div class="d-flex align-items-center justify-content-between small text-muted pe-md-4">
+                                            <div>
+                                                <span class="badge rounded-pill bg-light text-dark border me-1">x@item.Quantity</span>
+                                                <strong class="text-dark">@(item.Variant?.Product?.ProductName ?? "Sản phẩm")</strong>
+                                                <span class="text-muted">(Size @(item.Variant?.SizeName ?? ""))</span>
+                                            </div>
+                                            <span class="fw-semibold">@((item.UnitPrice * item.Quantity).ToString("N0")) đ</span>
+                                        </div>
+                                    }
                                 </div>
-                                <div class="col-md-5 text-md-end">
-                                    <div class="small text-muted mb-1">
-                                        Thanh toán: <strong>@payment?.PaymentMethod</strong>
-                                        <span class="badge @(payment?.PaymentStatus == "Success" ? "bg-success" : "bg-warning text-dark") ms-1">
-                                            @(payment?.PaymentStatus == "Success" ? "Đã trả" : "Chờ thu")
-                                        </span>
-                                    </div>
-                                    <div class="fs-4 fw-bold text-danger mb-2">
-                                        @ord.TotalAmount.ToString("N0") đ
-                                    </div>
-                                    <div class="d-flex justify-content-md-end gap-2 flex-wrap">
-                                        @if (payment?.PaymentStatus != "Success" && payment?.PaymentMethod == "Transfer")
-                                        {
-                                            <a asp-controller="PaymentGateway" asp-action="Pay" asp-route-orderId="@ord.OrderId"
-                                               class="btn btn-primary btn-sm rounded-pill">
-                                                <i class="bi bi-qr-code me-1"></i>Thanh toán QR
-                                            </a>
-                                        }
-                                        <a asp-action="Bill" asp-route-id="@ord.OrderId" class="btn btn-outline-secondary btn-sm rounded-pill">
-                                            <i class="bi bi-receipt me-1"></i>Hóa đơn
+                            </div>
+
+                            <div class="col-md-5 text-md-end border-top border-md-top-0 pt-2 pt-md-0">
+                                <div class="small text-muted mb-1">
+                                    Thanh toán: <strong class="text-dark">@(payment?.PaymentMethod == "COD" ? "Tiền mặt (COD)" : "Chuyển khoản QR")</strong>
+                                    <span class="cafe-badge @(payment?.PaymentStatus == "Success" ? "cafe-badge-success" : "cafe-badge-warning") ms-1">
+                                        @(payment?.PaymentStatus == "Success" ? "Đã thanh toán" : "Chờ thu tiền")
+                                    </span>
+                                </div>
+
+                                <div class="fs-4 fw-bold mb-2" style="color: var(--primary-green);">
+                                    @ord.TotalAmount.ToString("N0") đ
+                                </div>
+
+                                <div class="d-flex justify-content-md-end gap-2 flex-wrap">
+                                    @if (payment?.PaymentStatus != "Success" && payment?.PaymentMethod == "Transfer")
+                                    {
+                                        <a asp-controller="PaymentGateway" asp-action="Pay" asp-route-orderId="@ord.OrderId"
+                                           class="btn btn-cafe-primary btn-sm rounded-pill">
+                                            <i class="bi bi-qr-code me-1"></i> Thanh toán QR
                                         </a>
-                                        <a asp-action="Complaints" class="btn btn-outline-danger btn-sm rounded-pill">
-                                            <i class="bi bi-chat-dots me-1"></i>Khiếu nại
-                                        </a>
-                                    </div>
+                                    }
+                                    <a asp-action="Bill" asp-route-id="@ord.OrderId" class="btn btn-cafe-outline btn-sm rounded-pill">
+                                        <i class="bi bi-receipt me-1"></i> Hóa đơn
+                                    </a>
+                                    <a asp-action="Complaints" class="btn btn-cafe-outline btn-sm rounded-pill text-danger">
+                                        <i class="bi bi-chat-dots me-1"></i> Góp ý
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -109,4 +147,3 @@
         </div>
     }
 </div>
-
