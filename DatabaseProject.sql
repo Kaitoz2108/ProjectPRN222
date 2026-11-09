@@ -281,22 +281,22 @@ INSERT INTO Categories (CategoryName, Description) VALUES
 (N'Trà trái cây', N'Trà hoa quả tươi thanh mát nhiệt đới'),
 (N'Đá xay & Matcha', N'Thức uống đá xay kèm kem béo và trà xanh Nhật Bản');
 
--- 4. Products (Đầy đủ 13 sản phẩm với ảnh CDN trực tuyến chất lượng cao)
+-- 4. Products (13 sản phẩm với ảnh nội bộ đã đối chiếu đúng từng món)
 SET IDENTITY_INSERT Products ON;
 INSERT INTO Products (ProductId, CategoryId, ProductName, Description, ImageUrl) VALUES
-(1, 1, N'Bạc Xỉu Đá', N'Sự kết hợp hoàn hảo giữa sữa đặc, sữa tươi và cà phê Espresso đậm đà', 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop&q=80'),
-(2, 1, N'Cà Phê Sữa Đá', N'Cà phê Robusta nguyên chất pha phin truyền thống thơm nồng', 'https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=800&auto=format&fit=crop&q=80'),
-(3, 2, N'Trà Đào Cam Sả', N'Trà đen ủ lạnh kết hợp đào miếng giòn, cam vàng và hương sả tự nhiên', 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&auto=format&fit=crop&q=80'),
-(4, 1, N'Cà Phê Đen Đá', N'Hương vị đậm đà nguyên bản từ hạt cà phê Robusta rang mộc thơm nức', 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=800&auto=format&fit=crop&q=80'),
-(5, 1, N'Cà Phê Muối', N'Cà phê phin truyền thống hòa quyện cùng lớp kem béo mặn đặc trưng xứ Huế', 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=800&auto=format&fit=crop&q=80'),
-(6, 1, N'Cà Phê Trứng', N'Lớp kem trứng đánh bông mịn ngậy kết hợp cà phê phin nóng hổi truyền thống Hà Nội', 'https://images.unsplash.com/photo-1534778101976-62847782c213?w=800&auto=format&fit=crop&q=80'),
-(7, 1, N'Latte Hạnh Nhân', N'Cà phê Espresso kết hợp sữa hạnh nhân béo ngậy và lớp bọt sữa mềm mịn nghệ thuật', 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=800&auto=format&fit=crop&q=80'),
-(8, 2, N'Trà Vải Hạt Sen', N'Vị trà thanh mát kết hợp trái vải mọng nước và hạt sen bùi béo nấu đường phèn', 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800&auto=format&fit=crop&q=80'),
-(9, 2, N'Trà Ô Long Tuyết Lê', N'Trà ô long thượng hạng ủ lạnh cùng nước cốt lê ngọt thanh giải nhiệt', 'https://images.unsplash.com/photo-1499638673689-79a0b5115d87?w=800&auto=format&fit=crop&q=80'),
-(10, 2, N'Trà Dưa Lưới Nha Đam', N'Vị trà xanh nhẹ nhàng quyện nước ép dưa lưới tươi và thạch nha đam thanh mát giòn tan', 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80'),
-(11, 3, N'Matcha Đá Xay', N'Bột trà xanh Uji cao cấp xay nhuyễn cùng đá và sữa tươi, phủ bông kem béo ngậy', 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=800&auto=format&fit=crop&q=80'),
-(12, 3, N'Caramel Espresso Đá Xay', N'Sự hòa quyện mát lạnh giữa espresso hảo hạng, sốt caramel béo ngọt và whipping cream', 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&auto=format&fit=crop&q=80'),
-(13, 3, N'Matcha Latte Nóng', N'Trà xanh nguyên chất hòa quyện lớp sữa nóng mềm mịn với hậu vị ngọt dịu', 'https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?w=800&auto=format&fit=crop&q=80');
+(1, 1, N'Bạc Xỉu Đá', N'Sự kết hợp hoàn hảo giữa sữa đặc, sữa tươi và cà phê Espresso đậm đà', '/images/products/bac-xiu.jpg'),
+(2, 1, N'Cà Phê Sữa Đá', N'Cà phê Robusta nguyên chất pha phin truyền thống thơm nồng', '/images/products/cf-sua.jpg'),
+(3, 2, N'Trà Đào Cam Sả', N'Trà đen ủ lạnh kết hợp đào miếng giòn, cam vàng và hương sả tự nhiên', '/images/products/tra-dao.jpg'),
+(4, 1, N'Cà Phê Đen Đá', N'Hương vị đậm đà nguyên bản từ hạt cà phê Robusta rang mộc thơm nức', '/images/products/cf-den-da.jpg'),
+(5, 1, N'Cà Phê Muối', N'Cà phê phin truyền thống hòa quyện cùng lớp kem béo mặn đặc trưng xứ Huế', '/images/products/cf-muoi.png'),
+(6, 1, N'Cà Phê Trứng', N'Lớp kem trứng đánh bông mịn ngậy kết hợp cà phê phin nóng hổi truyền thống Hà Nội', '/images/products/cf-trung.webp'),
+(7, 1, N'Latte Hạnh Nhân', N'Cà phê Espresso kết hợp sữa hạnh nhân béo ngậy và lớp bọt sữa mềm mịn nghệ thuật', '/images/products/latte-hanh-nhan.jpg'),
+(8, 2, N'Trà Vải Hạt Sen', N'Vị trà thanh mát kết hợp trái vải mọng nước và hạt sen bùi béo nấu đường phèn', '/images/products/tra-vai-hat-sen.jpg'),
+(9, 2, N'Trà Ô Long Tuyết Lê', N'Trà ô long thượng hạng ủ lạnh cùng nước cốt lê ngọt thanh giải nhiệt', '/images/products/tra-o-long-tuyet-le.jpg'),
+(10, 2, N'Trà Dưa Lưới Nha Đam', N'Vị trà xanh nhẹ nhàng quyện nước ép dưa lưới tươi và thạch nha đam thanh mát giòn tan', '/images/products/tra-dua-luoi-nha-dam.png'),
+(11, 3, N'Matcha Đá Xay', N'Bột trà xanh Uji cao cấp xay nhuyễn cùng đá và sữa tươi, phủ bông kem béo ngậy', '/images/products/matcha-da-xay.png'),
+(12, 3, N'Caramel Espresso Đá Xay', N'Sự hòa quyện mát lạnh giữa espresso hảo hạng, sốt caramel béo ngọt và whipping cream', '/images/products/caramel-espresso-da-xay.jpg'),
+(13, 3, N'Matcha Latte Nóng', N'Trà xanh nguyên chất hòa quyện lớp sữa nóng mềm mịn với hậu vị ngọt dịu', '/images/products/matcha-latte-nong.jpg');
 SET IDENTITY_INSERT Products OFF;
 
 -- 5. ProductVariants (Size và Giá cho cả 13 sản phẩm)
