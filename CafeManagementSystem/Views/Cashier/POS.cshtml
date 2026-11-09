@@ -531,13 +531,27 @@
 
                 const sizeContainer = document.getElementById('posModalSizeContainer');
                 sizeContainer.innerHTML = '';
-                variants.forEach((v, idx) => {
+                
+                // Khử trùng lặp size nếu có và chuẩn hóa tên hiển thị
+                const seenSizes = new Set();
+                const uniqueVariants = [];
+                variants.forEach(v => {
+                    const rawSize = (v.sizeName || '').trim();
+                    const cleanSize = rawSize.replace(/^Size\s+/i, '').trim();
+                    const key = cleanSize.toUpperCase();
+                    if (!seenSizes.has(key)) {
+                        seenSizes.add(key);
+                        uniqueVariants.push({ ...v, displaySize: cleanSize });
+                    }
+                });
+
+                uniqueVariants.forEach((v, idx) => {
                     const label = document.createElement('label');
                     label.className = 'btn-cafe-option flex-fill text-center';
                     label.innerHTML = `
                         <input type="radio" name="variantId" value="${v.variantId}" ${idx === 0 ? 'checked' : ''} required />
                         <div>
-                            <div class="fw-bold">Size ${v.sizeName}</div>
+                            <div class="fw-bold">Size ${v.displaySize}</div>
                             <div class="small opacity-75">${v.price.toLocaleString('vi-VN')} đ</div>
                         </div>
                     `;

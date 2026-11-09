@@ -36,7 +36,7 @@
 
                             <div class="mb-3">
                                 <label asp-for="Form.OrderId" class="form-label small fw-bold text-dark"></label>
-                                <select asp-for="Form.OrderId" class="form-select" required>
+                                <select asp-for="Form.OrderId" name="OrderId" class="form-select" required>
                                     <option value="">-- Chọn đơn hàng cần góp ý --</option>
                                     @foreach (var o in Model.EligibleOrders)
                                     {
@@ -48,7 +48,7 @@
 
                             <div class="mb-3">
                                 <label asp-for="Form.ComplaintType" class="form-label small fw-bold text-dark"></label>
-                                <select asp-for="Form.ComplaintType" class="form-select" required>
+                                <select asp-for="Form.ComplaintType" name="ComplaintType" class="form-select" required>
                                     <option value="Chất lượng đồ uống">Chất lượng đồ uống</option>
                                     <option value="Giao hàng chậm">Giao hàng chậm</option>
                                     <option value="Sai món / Thiếu món">Sai món / Thiếu món</option>
@@ -59,7 +59,7 @@
 
                             <div class="mb-3">
                                 <label asp-for="Form.Rating" class="form-label small fw-bold text-dark"></label>
-                                <select asp-for="Form.Rating" class="form-select">
+                                <select asp-for="Form.Rating" name="Rating" class="form-select">
                                     <option value="5">⭐⭐⭐⭐⭐ (5 sao - Rất hài lòng)</option>
                                     <option value="4">⭐⭐⭐⭐ (4 sao - Tốt)</option>
                                     <option value="3">⭐⭐⭐ (3 sao - Bình thường)</option>
@@ -70,14 +70,14 @@
 
                             <div class="mb-3">
                                 <label asp-for="Form.Content" class="form-label small fw-bold text-dark"></label>
-                                <textarea asp-for="Form.Content" class="form-control" rows="3" required placeholder="Mô tả cụ thể sự cố hoặc trải nghiệm của bạn..."></textarea>
+                                <textarea asp-for="Form.Content" name="Content" class="form-control" rows="3" required placeholder="Mô tả cụ thể sự cố hoặc trải nghiệm của bạn (tối thiểu 5 ký tự)..."></textarea>
                                 <span asp-validation-for="Form.Content" class="text-danger small"></span>
                             </div>
 
                             <div class="mb-4">
                                 <label asp-for="Form.EvidenceImageUrl" class="form-label small fw-bold text-dark"></label>
-                                <input asp-for="Form.EvidenceImageUrl" class="form-control" placeholder="https://... (Link ảnh ly nước/hóa đơn nếu có)" />
-                                <small class="text-muted" style="font-size: 0.75rem;">Dán link ảnh chụp sản phẩm hoặc sự cố.</small>
+                                <input asp-for="Form.EvidenceImageUrl" name="EvidenceImageUrl" class="form-control" placeholder="https://... (Link ảnh ly nước/hóa đơn nếu có)" />
+                                <small class="text-muted" style="font-size: 0.75rem;">Dán link ảnh chụp sản phẩm hoặc sự cố (không bắt buộc).</small>
                             </div>
 
                             <button type="submit" class="btn btn-cafe-primary w-100 rounded-pill fw-bold py-2 shadow-sm">

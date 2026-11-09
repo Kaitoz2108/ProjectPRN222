@@ -440,22 +440,70 @@ public class CustomerController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SubmitComplaint(CustomerComplaintInputModel model)
+    public async Task<IActionResult> SubmitComplaint(
+        [Bind(Prefix = "Form")] CustomerComplaintInputModel? form,
+        CustomerComplaintInputModel? model)
     {
         var userId = GetCurrentUserId();
 
-        if (!ModelState.IsValid)
+        var input = (form != null && form.OrderId > 0) ? form : (model ?? new CustomerComplaintInputModel());
+
+        // Hỗ trợ đọc linh hoạt từ Request.Form đề phòng lệch tiền tố (Form. vs không tiền tố)
+        if (input.OrderId <= 0)
         {
-            TempData["ErrorMessage"] = "Dữ liệu phản hồi/khiếu nại không hợp lệ.";
+            if (int.TryParse(Request.Form["OrderId"].FirstOrDefault() ?? Request.Form["Form.OrderId"].FirstOrDefault(), out int parsedOrderId))
+            {
+                input.OrderId = parsedOrderId;
+            }
+        }
+        if (string.IsNullOrWhiteSpace(input.Content))
+        {
+            input.Content = (Request.Form["Content"].FirstOrDefault() ?? Request.Form["Form.Content"].FirstOrDefault() ?? string.Empty).Trim();
+        }
+        if (string.IsNullOrWhiteSpace(input.ComplaintType))
+        {
+            input.ComplaintType = Request.Form["ComplaintType"].FirstOrDefault() ?? Request.Form["Form.ComplaintType"].FirstOrDefault() ?? "Chất lượng đồ uống";
+        }
+        if (input.Rating <= 0)
+        {
+            if (int.TryParse(Request.Form["Rating"].FirstOrDefault() ?? Request.Form["Form.Rating"].FirstOrDefault(), out int parsedRating))
+            {
+                input.Rating = parsedRating;
+            }
+            else
+            {
+                input.Rating = 5;
+            }
+        }
+        if (string.IsNullOrWhiteSpace(input.EvidenceImageUrl))
+        {
+            input.EvidenceImageUrl = Request.Form["EvidenceImageUrl"].FirstOrDefault() ?? Request.Form["Form.EvidenceImageUrl"].FirstOrDefault();
+        }
+
+        if (input.OrderId <= 0)
+        {
+            TempData["ErrorMessage"] = "Vui lòng chọn đơn hàng cần phản hồi / khiếu nại.";
+            return RedirectToAction(nameof(Complaints));
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Content) || input.Content.Trim().Length < 5)
+        {
+            TempData["ErrorMessage"] = "Nội dung phản hồi cần tối thiểu từ 5 ký tự trở lên.";
+            return RedirectToAction(nameof(Complaints));
+        }
+
+        if (input.Content.Trim().Length > 500)
+        {
+            TempData["ErrorMessage"] = "Nội dung phản hồi không được vượt quá 500 ký tự.";
             return RedirectToAction(nameof(Complaints));
         }
 
         var order = await _context.Orders
-            .FirstOrDefaultAsync(o => o.OrderId == model.OrderId && o.CustomerId == userId);
+            .FirstOrDefaultAsync(o => o.OrderId == input.OrderId && o.CustomerId == userId);
 
         if (order == null)
         {
-            TempData["ErrorMessage"] = "Đơn hàng không thuộc tài khoản của bạn.";
+            TempData["ErrorMessage"] = "Đơn hàng không thuộc tài khoản của bạn hoặc không tồn tại.";
             return RedirectToAction(nameof(Complaints));
         }
 
@@ -463,10 +511,10 @@ public class CustomerController : Controller
         {
             OrderId = order.OrderId,
             CustomerId = userId,
-            ComplaintType = model.ComplaintType,
-            Rating = model.Rating,
-            Content = model.Content.Trim(),
-            EvidenceImageUrl = string.IsNullOrWhiteSpace(model.EvidenceImageUrl) ? null : model.EvidenceImageUrl.Trim(),
+            ComplaintType = input.ComplaintType,
+            Rating = input.Rating,
+            Content = input.Content.Trim(),
+            EvidenceImageUrl = string.IsNullOrWhiteSpace(input.EvidenceImageUrl) ? null : input.EvidenceImageUrl.Trim(),
             ComplaintStatus = "Pending",
             IsRefundApproved = false,
             CreatedAt = DateTime.Now

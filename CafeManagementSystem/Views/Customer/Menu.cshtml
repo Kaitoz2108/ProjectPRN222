@@ -375,20 +375,33 @@
                     // Render sizes
                     modalSizeContainer.innerHTML = '';
                     if (currentVariants.length > 0) {
-                        currentVariants.forEach((v, idx) => {
+                        // Khử trùng lặp size nếu có và chuẩn hóa tên hiển thị
+                        const seenSizes = new Set();
+                        const uniqueVariants = [];
+                        currentVariants.forEach(v => {
+                            const rawSize = (v.sizeName || '').trim();
+                            const cleanSize = rawSize.replace(/^Size\s+/i, '').trim();
+                            const key = cleanSize.toUpperCase();
+                            if (!seenSizes.has(key)) {
+                                seenSizes.add(key);
+                                uniqueVariants.push({ ...v, displaySize: cleanSize });
+                            }
+                        });
+
+                        uniqueVariants.forEach((v, idx) => {
                             const label = document.createElement('label');
                             label.className = 'btn-cafe-option flex-fill text-center';
                             label.innerHTML = `
                                 <input type="radio" name="variantId" value="${v.variantId}" data-price="${v.price}" ${idx === 0 ? 'checked' : ''} required />
                                 <div>
-                                    <div class="fw-bold">Size ${v.sizeName}</div>
+                                    <div class="fw-bold">Size ${v.displaySize}</div>
                                     <div class="small opacity-75">${v.price.toLocaleString('vi-VN')} đ</div>
                                 </div>
                             `;
                             modalSizeContainer.appendChild(label);
                         });
 
-                        currentSelectedPrice = currentVariants[0].price;
+                        currentSelectedPrice = uniqueVariants.length > 0 ? uniqueVariants[0].price : 0;
                     } else {
                         currentSelectedPrice = 0;
                     }
