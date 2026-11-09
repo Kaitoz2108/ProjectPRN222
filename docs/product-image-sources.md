@@ -21,7 +21,7 @@ Các ảnh là ảnh minh họa từ những nguồn dưới đây, không phả
 ## Áp dụng cho database khác
 
 Triển khai các file ảnh trước, sau đó chạy `Database/UpdateProductImages.sql`.
-Script khớp theo tên món và URL sai cũ, không phụ thuộc ProductId vì ID thực tế (31–40) khác ID seed (4–13).
+Script khớp theo tên món và URL sai cũ, không phụ thuộc ProductId vì ID thực tế (31–40) khác ID trong các bản seed GitHub cũ (4–13). Bản DatabaseProject.sql đồng bộ hiện tại đã giữ đúng ID cục bộ.
 Script chỉ cập nhật Products.ImageUrl, chạy trong transaction và có thể chạy lại; ảnh tùy chỉnh khác được giữ nguyên.
 DatabaseProject.sql đã dùng đường dẫn nội bộ đúng cho đủ 13 sản phẩm khi khởi tạo mới.
 Không chạy lại DatabaseProject.sql trên database đang dùng chỉ để sửa ảnh vì script đó tạo lại database.

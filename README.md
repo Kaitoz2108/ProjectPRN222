@@ -49,7 +49,7 @@ Hệ thống được thiết kế bám sát **Context Diagram (DFD Level 0)** v
 
 ## 🗄️ 3. Cấu trúc Cơ sở dữ liệu (`CafeManagementDB`)
 
-Cơ sở dữ liệu gồm **13 bảng** được chia thành 6 phân hệ liên kết chặt chẽ:
+Cơ sở dữ liệu gồm **16 bảng** được chia thành 6 phân hệ liên kết chặt chẽ:
 - **Phân quyền & Nhân sự:** `Roles`, `Users`, `WorkSchedules`, `Attendances`.
 - **Thực đơn & Công thức (BOM):** `Categories`, `Products`, `ProductVariants`, `Ingredients`, `ProductRecipes`.
 - **Giao dịch Kho & Hao hụt:** `InventoryTransactions` (Lưu 3 loại biến động: `Restock`, `OrderDeduction`, `Wastage`).
@@ -75,7 +75,7 @@ CafeManagementSystem.sln
     │   ├── AdminController.CatalogInventory.cs     # Admin: Quản lý Menu, Công thức & Nhập kho
     │   └── AdminController.OperationsReport.cs     # Admin: Nhân sự, Chấm công, Khiếu nại/Hoàn tiền & Báo cáo
     ├── Models/
-    │   ├── Entities/                               # CafeManagementDbContext & 13 Entity Classes
+    │   ├── Entities/                               # CafeManagementDbContext & 16 Entity Classes
     │   └── ViewModels/                             # Các ViewModel đóng gói dữ liệu hiển thị
     ├── Views/
     │   ├── Account/                                # Login, Register, Profile
@@ -89,3 +89,10 @@ CafeManagementSystem.sln
     ├── wwwroot/                                    # Static files & Ảnh minh chứng khiếu nại
     ├── appsettings.json                            # Chuỗi kết nối SQL Server
     └── Program.cs                                  # Cấu hình DI, Session & Cookie Auth
+```
+
+## Đồng bộ database
+
+`DatabaseProject.sql` hiện lấy cấu trúc và danh mục SQL Server cục bộ làm chuẩn: 16 bảng, 13 sản phẩm, 33 biến thể, 6 nguyên liệu và 6 công thức. Xem [hướng dẫn khởi tạo, đối chiếu và phạm vi dữ liệu](Database/README.md).
+
+File khởi tạo này tạo lại database cùng tên. Với database đang có dữ liệu và chỉ cần sửa ảnh sản phẩm, dùng [script cập nhật ảnh](Database/UpdateProductImages.sql).
