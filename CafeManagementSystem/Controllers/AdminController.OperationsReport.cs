@@ -193,7 +193,10 @@ public partial class AdminController
 {
     private async Task<AdminComplaintsViewModel> LoadComplaintsAsync(AdminResolveComplaintInput? input = null) => new()
     {
-        Complaints = await _context.Complaints.AsNoTracking().Include(x => x.Order).Include(x => x.Customer)
+        Complaints = await _context.Complaints.AsNoTracking()
+            .Include(x => x.Order).ThenInclude(o => o.OrderItems).ThenInclude(oi => oi.Variant).ThenInclude(v => v.Product)
+            .Include(x => x.Order).ThenInclude(o => o.PaymentTransactions)
+            .Include(x => x.Customer)
             .Include(x => x.ResolvedByAdmin).OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.ComplaintId).ToListAsync(),
         Resolution = input ?? new()
     };
@@ -206,12 +209,16 @@ public partial class AdminController
     {
         if (!await IsOperationsAdminAsync()) return Forbid();
         if (input.IsRefundApproved && (input.Status != "Resolved" || input.RefundAmount <= 0))
-            ModelState.AddModelError("", "Hoàn tiền cần trạng thái Resolved và số tiền lớn hơn 0.");
+            ModelState.AddModelError("", "Hoàn tiền yêu cầu trạng thái phải là 'Resolved' và số tiền hoàn phải lớn hơn 0đ.");
         if (!input.IsRefundApproved && input.RefundAmount != 0)
-            ModelState.AddModelError("", "Hãy chọn phê duyệt hoàn tiền hoặc để số tiền bằng 0.");
+            ModelState.AddModelError("", "Nếu không tích chọn phê duyệt hoàn tiền, số tiền hoàn phải để bằng 0đ.");
         if (decimal.Round(input.RefundAmount, 2) != input.RefundAmount)
             ModelState.AddModelError("", "Số tiền chỉ được có tối đa 2 chữ số thập phân.");
-        if (!ModelState.IsValid) return View("Complaints", await LoadComplaintsAsync(input));
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            return View("Complaints", await LoadComplaintsAsync(input));
+        }
         var orderId = await _context.Complaints.Where(x => x.ComplaintId == input.ComplaintId).Select(x => (int?)x.OrderId).SingleOrDefaultAsync();
         if (orderId == null) return NotFound();
         try
@@ -222,14 +229,20 @@ public partial class AdminController
             var complaint = await _context.Complaints.FromSqlInterpolated($"SELECT * FROM Complaints WITH (UPDLOCK, HOLDLOCK) WHERE ComplaintId = {input.ComplaintId}").SingleOrDefaultAsync();
             if (complaint == null) return NotFound();
             if (complaint.IsRefundApproved || complaint.ComplaintStatus is not ("Pending" or "InProgress"))
-                ModelState.AddModelError("", "Khiếu nại đã được xử lý. Không thể xử lý hoặc hoàn tiền lần nữa.");
+                ModelState.AddModelError("", "Khiếu nại này đã được xử lý xong trước đó. Để đảm bảo an toàn giao dịch, không thể sửa đổi hoặc hoàn tiền thêm lần nữa.");
             if (input.IsRefundApproved)
             {
                 var paid = await _context.PaymentTransactions.Where(x => x.OrderId == order.OrderId && x.TransactionType == "Payment" && x.PaymentStatus == "Success").SumAsync(x => (decimal?)x.Amount) ?? 0;
                 var refunded = await _context.PaymentTransactions.Where(x => x.OrderId == order.OrderId && x.TransactionType == "Refund" && x.PaymentStatus == "Refunded").SumAsync(x => (decimal?)x.Amount) ?? 0;
                 var remaining = Math.Max(0, Math.Min(paid, order.TotalAmount) - refunded);
-                if (input.RefundAmount > remaining)
-                    ModelState.AddModelError("Resolution.RefundAmount", $"Số tiền vượt mức còn được hoàn ({remaining:N2} VND).");
+                if (paid == 0)
+                {
+                    ModelState.AddModelError("Resolution.RefundAmount", "Đơn hàng này chưa thanh toán thành công (hoặc là đơn COD chưa thu tiền). Không thể hoàn tiền cho đơn mà khách chưa trả tiền. Vui lòng bỏ chọn 'Phê duyệt hoàn tiền' và để số tiền hoàn là 0đ.");
+                }
+                else if (input.RefundAmount > remaining)
+                {
+                    ModelState.AddModelError("Resolution.RefundAmount", $"Số tiền hoàn ({input.RefundAmount:N0} đ) vượt quá mức còn được hoàn ({remaining:N0} đ). Khách đã thanh toán {paid:N0} đ, đã hoàn {refunded:N0} đ.");
+                }
             }
             if (ModelState.IsValid)
             {
@@ -252,8 +265,8 @@ public partial class AdminController
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 TempData["OperationsSuccess"] = input.IsRefundApproved
-                    ? "Đã xử lý khiếu nại và ghi nhận giao dịch RefundGateway theo luồng mô phỏng của hệ thống."
-                    : "Đã lưu phản hồi xử lý khiếu nại.";
+                    ? $"Đã xử lý khiếu nại #{input.ComplaintId} thành công và hoàn trả {input.RefundAmount:N0} VNĐ cho khách hàng."
+                    : $"Đã lưu phản hồi xử lý khiếu nại #{input.ComplaintId} thành công.";
                 return RedirectToAction(nameof(Complaints));
             }
         }
@@ -266,6 +279,10 @@ public partial class AdminController
             ModelState.AddModelError("", "Giao dịch chưa hoàn tất do kết nối hoặc tranh chấp dữ liệu. Vui lòng thử lại.");
         }
         _context.ChangeTracker.Clear();
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+        }
         return View("Complaints", await LoadComplaintsAsync(input));
     }
 }

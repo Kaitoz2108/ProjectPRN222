@@ -20,12 +20,27 @@
         </div>
     </div>
 
+@if (!ViewData.ModelState.IsValid)
+{
     <div asp-validation-summary="All" class="alert alert-danger py-2 rounded-3 small" role="alert"></div>
+}
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="small fw-semibold text-muted">
-            Tổng cộng: <strong class="text-dark">@Model.Complaints.Count</strong> phản hồi từ khách hàng
-        </span>
+    @{
+        var pendingCount = Model.Complaints.Count(c => c.ComplaintStatus == "Pending");
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <span class="small fw-semibold text-muted">
+                Tổng cộng: <strong class="text-dark">@Model.Complaints.Count</strong> phản hồi từ khách hàng
+            </span>
+            @if (pendingCount > 0)
+            {
+                <span class="badge rounded-pill bg-danger px-2 py-1 shadow-sm">
+                    <i class="bi bi-bell-fill me-1"></i>@pendingCount chờ xử lý
+                </span>
+            }
+        </div>
         <span class="small text-muted">
             <i class="bi bi-info-circle me-1"></i>Hoàn tiền chỉ được duyệt tối đa giá trị đơn đã thanh toán.
         </span>
@@ -76,11 +91,17 @@
                 
                 <!-- Card Header -->
                 <div class="card-header border-bottom p-3 d-flex justify-content-between align-items-center flex-wrap gap-2"
-                     style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                     style="background-color: @(item.ComplaintStatus == "Pending" ? "#FFF9F0" : "#FAF7F2"); border-color: var(--border-color) !important;">
                     <div class="d-flex align-items-center gap-2">
                         <span class="fw-bold text-dark fs-6">#@item.ComplaintId</span>
                         <span class="badge rounded-pill bg-light text-dark border">Đơn #@item.Order.OrderCode</span>
                         <span class="badge rounded-pill bg-light text-muted border">@item.ComplaintType</span>
+                        @if (item.ComplaintStatus == "Pending")
+                        {
+                            <span class="badge bg-danger rounded-pill px-2 py-1 shadow-sm" style="font-size: 0.72rem;">
+                                <i class="bi bi-bell-fill me-1"></i>MỚI
+                            </span>
+                        }
                     </div>
                     <span class="@badgeClass">@statusText</span>
                 </div>
@@ -111,6 +132,60 @@
                             <!-- Content -->
                             <div class="p-3 rounded-3 mb-3 text-dark small" style="background-color: #FAF7F2; border: 1px solid var(--border-subtle); white-space: pre-wrap;">@item.Content</div>
 
+                            <!-- Chi tiết đơn hàng liên quan -->
+                            @{
+                                var orderTotal = item.Order.TotalAmount;
+                                var paid = item.Order.PaymentTransactions?.Where(x => x.TransactionType == "Payment" && x.PaymentStatus == "Success").Sum(x => (decimal?)x.Amount) ?? 0;
+                                var refunded = item.Order.PaymentTransactions?.Where(x => x.TransactionType == "Refund" && x.PaymentStatus == "Refunded").Sum(x => (decimal?)x.Amount) ?? 0;
+                                var remaining = Math.Max(0, Math.Min(paid, orderTotal) - refunded);
+                            }
+                            <div class="mb-3 p-3 rounded-3" style="background-color: #FAF7F2; border: 1px solid var(--border-color); font-size: 0.82rem;">
+                                <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-light">
+                                    <span class="fw-bold text-dark"><i class="bi bi-receipt me-1"></i>Đơn hàng #@item.Order.OrderCode</span>
+                                    <span class="fw-bold" style="color: var(--primary-green);">@item.Order.TotalAmount.ToString("N0") đ</span>
+                                </div>
+                                <div class="text-muted mb-1 d-flex justify-content-between">
+                                    <span>Trạng thái thanh toán:</span>
+                                    <span>
+                                        @if (paid > 0)
+                                        {
+                                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle fw-semibold">
+                                                <i class="bi bi-check2-circle me-1"></i>Đã thanh toán: @paid.ToString("N0") đ
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold">
+                                                <i class="bi bi-clock-history me-1"></i>Chưa thanh toán (0 đ)
+                                            </span>
+                                        }
+                                    </span>
+                                </div>
+                                <div class="text-muted mb-1 d-flex justify-content-between">
+                                    <span>Mức hoàn tối đa cho phép:</span>
+                                    <span class="fw-bold @(remaining > 0 ? "text-success" : "text-danger")">@remaining.ToString("N0") đ</span>
+                                </div>
+                                <div class="text-muted mb-1 d-flex justify-content-between">
+                                    <span>Phí giao hàng:</span>
+                                    <span>@(item.Order.ShippingFee > 0 ? item.Order.ShippingFee.ToString("N0") + " đ" : "0 đ (Miễn phí)")</span>
+                                </div>
+                                @if (item.Order.OrderItems != null && item.Order.OrderItems.Any())
+                                {
+                                    <div class="mt-2 pt-1 border-top border-light">
+                                        <span class="text-muted d-block mb-1" style="font-size: 0.78rem;">Các món trong đơn:</span>
+                                        <ul class="list-unstyled mb-0 d-flex flex-column gap-1">
+                                            @foreach (var oi in item.Order.OrderItems)
+                                            {
+                                                <li class="d-flex justify-content-between align-items-center">
+                                                    <span><strong>x@(oi.Quantity)</strong> @(oi.Variant?.Product?.ProductName ?? "Sản phẩm") (Size @(oi.Variant?.SizeName ?? "M"))</span>
+                                                    <span class="text-muted">@((oi.UnitPrice * oi.Quantity).ToString("N0")) đ</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+                            </div>
+
                             <!-- Evidence Image -->
                             @if (!string.IsNullOrWhiteSpace(item.EvidenceImageUrl))
                             {
@@ -135,6 +210,83 @@
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="Resolution.ComplaintId" value="@item.ComplaintId" />
 
+                                    @{
+                                        var isCODUnpaid = paid == 0;
+                                        var shipFee = item.Order.ShippingFee;
+                                        var shipVal = Math.Min(remaining, shipFee > 0 ? shipFee : 20000m);
+                                        var refund30Val = Math.Min(remaining, Math.Round(orderTotal * 0.3m, 0));
+                                        var refund50Val = Math.Min(remaining, Math.Round(orderTotal * 0.5m, 0));
+                                        var refund100Val = remaining;
+                                    }
+
+                                    @if (isCODUnpaid || remaining <= 0)
+                                    {
+                                        <div class="col-12">
+                                            <div class="p-2 rounded-3 border" style="background-color: #FFF9E6; border-color: #FFE082 !important; font-size: 0.8rem;">
+                                                <div class="d-flex align-items-center gap-2 text-warning-emphasis fw-bold mb-1">
+                                                    <i class="bi bi-exclamation-triangle-fill text-warning"></i> Đơn hàng chưa thanh toán / COD
+                                                </div>
+                                                <div class="text-muted" style="line-height: 1.35;">
+                                                    Số tiền khách thực tế đã thanh toán cho đơn này là <strong>0 đ</strong> nên hệ thống <strong>không cho phép phê duyệt hoàn tiền</strong>. Vui lòng chọn <strong>Resolved (Số tiền = 0 đ)</strong> kèm phản hồi hỗ trợ/xin lỗi hoặc chọn <strong>Rejected (Từ chối)</strong>.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Quick Refund Preset Toolbar -->
+                                    <div class="col-12">
+                                        <div class="p-2 rounded-3 border" style="background-color: #FAF7F2; border-color: var(--border-color) !important;">
+                                            <div class="small fw-bold text-dark mb-1 d-flex justify-content-between align-items-center">
+                                                <span><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Chọn nhanh phương án & mẫu phản hồi:</span>
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @if (isCODUnpaid || remaining <= 0)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill py-1 px-2 fw-semibold" style="font-size: 0.75rem;"
+                                                            onclick="applyRefundPreset(@item.ComplaintId, 0, false, 'Resolved', 'Laura Café thành thật xin lỗi vì sự cố với đơn hàng #@item.Order.OrderCode khiến bạn chưa hài lòng. Quán đã ghi nhận phản ánh và liên hệ bộ phận liên quan để khắc phục chu đáo.')">
+                                                        <i class="bi bi-chat-heart me-1"></i>Giải quyết hỗ trợ (0 đ)
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill py-1 px-2 fw-semibold" style="font-size: 0.75rem;"
+                                                            onclick="applyRefundPreset(@item.ComplaintId, 0, false, 'Rejected', 'Chào bạn, Laura Café đã kiểm tra lại quy trình và đối soát đơn hàng #@item.Order.OrderCode. Đơn hàng được xử lý đúng quy chuẩn. Rất mong bạn thông cảm.')">
+                                                        <i class="bi bi-x-circle me-1"></i>Từ chối khiếu nại (0 đ)
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    @if (shipFee > 0 || item.ComplaintType == "Giao hàng chậm")
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 fw-semibold" style="font-size: 0.75rem;"
+                                                                onclick="applyRefundPreset(@item.ComplaintId, @shipVal, true, 'Resolved', 'Laura Café rất tiếc vì đơn hàng giao trễ hơn dự kiến do giờ cao điểm/thời tiết. Quán xin phép hoàn lại @shipVal.ToString("N0") đ tiền phí vận chuyển vào ví của bạn.')">
+                                                            <i class="bi bi-bicycle me-1"></i>Hoàn Ship (@shipVal.ToString("N0") đ)
+                                                        </button>
+                                                    }
+                                                    @if (refund30Val > 0)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill py-1 px-2 fw-semibold" style="font-size: 0.75rem;"
+                                                                onclick="applyRefundPreset(@item.ComplaintId, @refund30Val, true, 'Resolved', 'Laura Café thành thật xin lỗi vì khẩu vị hoặc trải nghiệm chưa làm bạn hài lòng trọn vẹn. Quán xin hoàn lại 30% giá trị (@refund30Val.ToString("N0") đ) để sẻ chia sự cố này.')">
+                                                            <i class="bi bi-percent me-1"></i>Hoàn 30% (@refund30Val.ToString("N0") đ)
+                                                        </button>
+                                                    }
+                                                    @if (refund50Val > 0)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2 fw-semibold" style="font-size: 0.75rem;"
+                                                                onclick="applyRefundPreset(@item.ComplaintId, @refund50Val, true, 'Resolved', 'Laura Café thành thật xin lỗi vì sự cố với đơn hàng #@item.Order.OrderCode. Quán xin hỗ trợ hoàn 50% số tiền (@refund50Val.ToString("N0") đ) vào tài khoản ví của bạn.')">
+                                                            <i class="bi bi-pie-chart me-1"></i>Hoàn 50% (@refund50Val.ToString("N0") đ)
+                                                        </button>
+                                                    }
+                                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill py-1 px-2 fw-semibold" style="font-size: 0.75rem;"
+                                                            onclick="applyRefundPreset(@item.ComplaintId, @refund100Val, true, 'Resolved', 'Laura Café vô cùng xin lỗi về sự cố đáng tiếc với đơn hàng #@item.Order.OrderCode. Quán xin phép hoàn lại 100% số tiền (@refund100Val.ToString("N0") đ) cho bạn ngay lập tức.')">
+                                                        <i class="bi bi-check-all me-1"></i>Hoàn tối đa (@refund100Val.ToString("N0") đ)
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill py-1 px-2 fw-semibold" style="font-size: 0.75rem;"
+                                                            onclick="applyRefundPreset(@item.ComplaintId, 0, false, 'Rejected', 'Chào bạn, Laura Café đã kiểm tra lại camera quy trình pha chế và đối soát nội bộ. Đơn hàng đã được phục vụ đúng quy chuẩn. Rất mong bạn thông cảm.')">
+                                                        <i class="bi bi-x-circle me-1"></i>Từ chối (0 đ)
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="col-12">
                                         <label for="response-@item.ComplaintId" class="form-label small fw-bold text-dark">
                                             Phản hồi giải quyết cho khách hàng <span class="text-danger">*</span>
@@ -151,21 +303,49 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="amount-@item.ComplaintId" class="form-label small fw-bold text-dark">Số tiền hoàn (VNĐ)</label>
-                                        <input id="amount-@item.ComplaintId" name="Resolution.RefundAmount" type="number" min="0" max="@item.Order.TotalAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="0.01" value="@edit.RefundAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control form-control-sm" required />
+                                        <label for="amount-@item.ComplaintId" class="form-label small fw-bold text-dark">
+                                            Số tiền hoàn (VNĐ) <span class="text-muted fw-normal">(Tối đa: @remaining.ToString("N0") đ)</span>
+                                        </label>
+                                        <input id="amount-@item.ComplaintId" name="Resolution.RefundAmount" type="number" min="0" max="@remaining.ToString(System.Globalization.CultureInfo.InvariantCulture)" step="0.01" 
+                                               value="@(edit.RefundAmount > remaining ? remaining.ToString(System.Globalization.CultureInfo.InvariantCulture) : edit.RefundAmount.ToString(System.Globalization.CultureInfo.InvariantCulture))" 
+                                               class="form-control form-control-sm" required oninput="syncRefundCheck(@item.ComplaintId)" />
                                     </div>
 
                                     <div class="col-12">
                                         <div class="p-2 rounded border" style="background-color: #FFF9F0; border-color: #FFE0B2 !important;">
                                             <div class="form-check">
-                                                <input id="refund-@item.ComplaintId" type="checkbox" name="Resolution.IsRefundApproved" value="true" checked="@edit.IsRefundApproved" class="form-check-input" />
+                                                <input id="refund-@item.ComplaintId" type="checkbox" name="Resolution.IsRefundApproved" value="true" checked="@(edit.IsRefundApproved && remaining > 0)" class="form-check-input" onchange="onRefundCheckChanged(@item.ComplaintId, @remaining.ToString(System.Globalization.CultureInfo.InvariantCulture))" @(remaining <= 0 ? "disabled" : "") />
                                                 <label for="refund-@item.ComplaintId" class="form-check-label small fw-bold text-dark">
                                                     Phê duyệt hoàn tiền (Approve Refund vào ví khách hàng)
                                                 </label>
                                             </div>
+                                            @if (remaining <= 0)
+                                            {
+                                                <div class="text-muted ps-4" style="font-size: 0.72rem;">* Đơn chưa thanh toán hoặc đã hoàn hết hạn mức, không thể phê duyệt hoàn thêm tiền.</div>
+                                            }
                                             <input type="hidden" name="Resolution.IsRefundApproved" value="false" />
                                         </div>
                                     </div>
+
+                                    @if (Model.Resolution.ComplaintId == item.ComplaintId && !ViewData.ModelState.IsValid)
+                                    {
+                                        <div class="col-12">
+                                            <div class="alert alert-danger py-2 px-3 rounded-3 small mb-0 shadow-sm border-danger">
+                                                <div class="fw-bold d-flex align-items-center gap-1 mb-1">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i> Không thể lưu xử lý khiếu nại:
+                                                </div>
+                                                <ul class="mb-0 ps-3">
+                                                    @foreach (var modelState in ViewData.ModelState.Values)
+                                                    {
+                                                        foreach (var error in modelState.Errors)
+                                                        {
+                                                            <li>@error.ErrorMessage</li>
+                                                        }
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    }
 
                                     <div class="col-12 mt-2">
                                         <button class="btn btn-cafe-primary rounded-pill px-4 fw-bold">
@@ -211,3 +391,52 @@
         }
     </div>
 </div>
+
+@section Scripts {
+<script>
+    function applyRefundPreset(complaintId, amount, isApproved, status, defaultMsg) {
+        var amountInput = document.getElementById('amount-' + complaintId);
+        var refundCheckbox = document.getElementById('refund-' + complaintId);
+        var statusSelect = document.getElementById('result-' + complaintId);
+        var responseTextarea = document.getElementById('response-' + complaintId);
+
+        if (amountInput) {
+            amountInput.value = amount;
+            amountInput.style.transition = 'background-color 0.3s';
+            amountInput.style.backgroundColor = '#E8F5E9';
+            setTimeout(function() { amountInput.style.backgroundColor = ''; }, 700);
+        }
+        if (refundCheckbox && !refundCheckbox.disabled) {
+            refundCheckbox.checked = isApproved;
+        }
+        if (statusSelect) statusSelect.value = status;
+        if (responseTextarea) {
+            responseTextarea.value = defaultMsg;
+            responseTextarea.style.transition = 'background-color 0.3s';
+            responseTextarea.style.backgroundColor = '#E8F5E9';
+            setTimeout(function() { responseTextarea.style.backgroundColor = ''; }, 700);
+        }
+    }
+
+    function syncRefundCheck(complaintId) {
+        var amountInput = document.getElementById('amount-' + complaintId);
+        var refundCheckbox = document.getElementById('refund-' + complaintId);
+        if (!amountInput || !refundCheckbox || refundCheckbox.disabled) return;
+        var val = parseFloat(amountInput.value) || 0;
+        refundCheckbox.checked = (val > 0);
+    }
+
+    function onRefundCheckChanged(complaintId, maxAmount) {
+        var amountInput = document.getElementById('amount-' + complaintId);
+        var refundCheckbox = document.getElementById('refund-' + complaintId);
+        if (!amountInput || !refundCheckbox) return;
+        if (!refundCheckbox.checked) {
+            amountInput.value = 0;
+        } else {
+            if (parseFloat(amountInput.value) <= 0) {
+                amountInput.value = maxAmount > 0 ? maxAmount : 0;
+            }
+        }
+    }
+</script>
+}

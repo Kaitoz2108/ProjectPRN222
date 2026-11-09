@@ -417,8 +417,16 @@ public class CustomerController : Controller
     {
         var userId = GetCurrentUserId();
 
+        // Lấy danh sách ID các đơn hàng ĐÃ gửi khiếu nại của user này
+        var complainedOrderIds = await _context.Complaints
+            .Where(c => c.CustomerId == userId)
+            .Select(c => c.OrderId)
+            .Distinct()
+            .ToListAsync();
+
+        // Chỉ cho phép chọn các đơn hàng CHƯA từng gửi khiếu nại
         var eligibleOrders = await _context.Orders
-            .Where(o => o.CustomerId == userId)
+            .Where(o => o.CustomerId == userId && !complainedOrderIds.Contains(o.OrderId))
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
 
@@ -504,6 +512,16 @@ public class CustomerController : Controller
         if (order == null)
         {
             TempData["ErrorMessage"] = "Đơn hàng không thuộc tài khoản của bạn hoặc không tồn tại.";
+            return RedirectToAction(nameof(Complaints));
+        }
+
+        // Chặn gửi khiếu nại nhiều lần cho cùng một đơn hàng
+        var alreadyComplained = await _context.Complaints
+            .AnyAsync(c => c.OrderId == input.OrderId);
+
+        if (alreadyComplained)
+        {
+            TempData["ErrorMessage"] = $"Đơn hàng #{order.OrderCode} đã được gửi khiếu nại trước đó. Mỗi đơn hàng chỉ được khiếu nại một lần.";
             return RedirectToAction(nameof(Complaints));
         }
 

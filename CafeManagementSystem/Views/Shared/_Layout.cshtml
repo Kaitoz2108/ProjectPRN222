@@ -1,5 +1,7 @@
 @using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject CafeManagementSystem.Models.Entities.CafeManagementDbContext DbContext
 @{
     var currentCtrl = (ViewContext.RouteData.Values["controller"]?.ToString() ?? "").ToLower();
     var currentAct = (ViewContext.RouteData.Values["action"]?.ToString() ?? "").ToLower();
@@ -7,6 +9,28 @@
     bool isStaffOrAdmin = User.Identity != null && User.Identity.IsAuthenticated && 
         (User.IsInRole("Admin") || User.IsInRole("Cashier") || User.IsInRole("Barista") || User.IsInRole("DeliveryStaff"));
     bool isAuthPage = currentCtrl == "account" && (currentAct == "login" || currentAct == "register");
+
+    // Lấy số lượng khiếu nại chờ xử lý cho Admin
+    int pendingComplaintsCount = 0;
+    List<CafeManagementSystem.Models.Entities.Complaint> recentPendingComplaints = new();
+    if (User.IsInRole("Admin"))
+    {
+        try
+        {
+            pendingComplaintsCount = DbContext.Complaints.Count(c => c.ComplaintStatus == "Pending");
+            if (pendingComplaintsCount > 0)
+            {
+                recentPendingComplaints = DbContext.Complaints
+                    .Include(c => c.Customer)
+                    .Include(c => c.Order)
+                    .Where(c => c.ComplaintStatus == "Pending")
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Take(5)
+                    .ToList();
+            }
+        }
+        catch { }
+    }
 
     // Tính giỏ hàng cho Customer
     int cartCount = 0;
@@ -103,10 +127,16 @@
                         <i class="bi bi-people"></i>
                         <span>Nhân sự & lịch ca</span>
                     </a>
-                    <a class="cafe-sidebar-link @(currentCtrl == "admin" && currentAct == "complaints" ? "active" : "")" 
+                    <a class="cafe-sidebar-link d-flex align-items-center justify-content-between @(currentCtrl == "admin" && currentAct == "complaints" ? "active" : "")" 
                        asp-controller="Admin" asp-action="Complaints">
-                        <i class="bi bi-chat-dots"></i>
-                        <span>Khiếu nại</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-chat-dots"></i>
+                            <span>Khiếu nại</span>
+                        </div>
+                        <span class="badge rounded-pill bg-danger px-2 py-1 shadow-sm admin-complaints-badge @(pendingComplaintsCount > 0 ? "" : "d-none")" 
+                              style="font-size: 0.7rem; font-weight: 700;">
+                            @pendingComplaintsCount
+                        </span>
                     </a>
 
                     <div class="cafe-sidebar-divider"></div>
@@ -199,8 +229,125 @@
                     </svg>
                     <span>Laura Café</span>
                 </div>
-                <div class="cafe-sidebar-avatar" style="width: 28px; height: 28px; font-size: 0.75rem;">@userInitials</div>
+                <div class="d-flex align-items-center gap-2">
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-controller="Admin" asp-action="Complaints" class="position-relative text-dark p-1 me-1" title="Xem khiếu nại">
+                            <i class="bi bi-bell-fill fs-5 @(pendingComplaintsCount > 0 ? "text-danger" : "text-secondary")"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger admin-complaints-badge @(pendingComplaintsCount > 0 ? "" : "d-none")" style="font-size: 0.6rem;">
+                                @pendingComplaintsCount
+                            </span>
+                        </a>
+                    }
+                    <div class="cafe-sidebar-avatar" style="width: 28px; height: 28px; font-size: 0.75rem;">@userInitials</div>
+                </div>
             </div>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <!-- Desktop Admin Top Bar with Notification Bell -->
+                <div class="d-none d-lg-flex bg-white border-bottom px-4 py-2 justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill" style="background-color: var(--primary-green-light); color: var(--primary-green); font-size: 0.78rem; font-weight: 600;">
+                            <i class="bi bi-shield-check me-1"></i>Hệ Thống Quản Trị Laura Café
+                        </span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Notification Bell Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light position-relative rounded-circle p-2 shadow-sm border" 
+                                    id="adminNoticeDrop" data-bs-toggle="dropdown" aria-expanded="false" 
+                                    style="width: 38px; height: 38px;" title="Thông báo khiếu nại từ khách hàng">
+                                <i class="bi bi-bell-fill fs-6 @(pendingComplaintsCount > 0 ? "text-danger" : "text-secondary")" id="adminBellIcon"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white admin-complaints-badge @(pendingComplaintsCount > 0 ? "" : "d-none")" 
+                                      style="font-size: 0.65rem;" id="adminNoticeBadge">
+                                    @pendingComplaintsCount
+                                </span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-0 mt-2" 
+                                 aria-labelledby="adminNoticeDrop" style="min-width: 340px; max-width: 380px;">
+                                <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background-color: #FAF7F2;">
+                                    <div class="fw-bold text-dark">
+                                        <i class="bi bi-bell-fill me-1 text-danger"></i>Khiếu nại khách hàng
+                                    </div>
+                                    <span class="badge rounded-pill bg-danger text-white px-2 py-1 admin-complaints-badge-text" style="font-size: 0.72rem;">
+                                        @pendingComplaintsCount mới
+                                    </span>
+                                </div>
+                                <div class="p-2" id="adminNoticeList" style="max-height: 280px; overflow-y: auto;">
+                                    @if (pendingComplaintsCount == 0)
+                                    {
+                                        <div class="text-center py-4 text-muted small">
+                                            <i class="bi bi-check2-circle fs-3 d-block text-success mb-1"></i>
+                                            Hiện không có khiếu nại nào chờ xử lý.
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var nc in recentPendingComplaints)
+                                        {
+                                            <a asp-controller="Admin" asp-action="Complaints" class="dropdown-item p-2 rounded-3 text-wrap mb-1" style="background-color: #FFFDF9; border: 1px solid var(--border-subtle);">
+                                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                                    <strong class="text-dark small">@nc.Customer.FullName</strong>
+                                                    <span class="text-muted" style="font-size: 0.7rem;">@nc.CreatedAt.ToString("HH:mm dd/MM")</span>
+                                                </div>
+                                                <div class="text-danger fw-semibold small mb-1">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>Đơn #@nc.Order.OrderCode - @nc.ComplaintType
+                                                </div>
+                                                <p class="text-muted small mb-0 text-truncate" style="font-size: 0.78rem;">@nc.Content</p>
+                                            </a>
+                                        }
+                                    }
+                                </div>
+                                <div class="p-2 border-top text-center" style="background-color: #FAF7F2;">
+                                    <a asp-controller="Admin" asp-action="Complaints" class="small fw-bold text-decoration-none" style="color: var(--primary-green);">
+                                        Xem và xử lý tất cả khiếu nại &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Profile Badge -->
+                        <div class="d-flex align-items-center gap-2 bg-light px-3 py-1 border rounded-pill">
+                            <div class="cafe-sidebar-avatar" style="width: 26px; height: 26px; font-size: 0.72rem; background-color: var(--primary-green);">
+                                @userInitials
+                            </div>
+                            <span class="fw-bold small text-dark">@(User.Identity?.Name ?? "Admin")</span>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (User.IsInRole("Admin") && pendingComplaintsCount > 0 && currentCtrl == "admin" && currentAct != "complaints")
+            {
+                <!-- Alert Banner for Pending Complaints -->
+                <div class="container-fluid px-4 pt-3">
+                    <div class="alert alert-warning alert-dismissible fade show shadow-sm border-0 rounded-4 d-flex align-items-center justify-content-between p-3 mb-0" 
+                         role="alert" style="background: linear-gradient(90deg, #FFF6E8 0%, #FFFDF9 100%); border-left: 5px solid var(--accent-caramel) !important;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white" 
+                                 style="width: 40px; height: 40px; background-color: var(--accent-caramel);">
+                                <i class="bi bi-bell-fill fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                    Có <span class="badge rounded-pill bg-danger admin-complaints-badge">@pendingComplaintsCount</span> khiếu nại mới từ khách hàng đang chờ xử lý!
+                                </div>
+                                <div class="text-muted small" style="font-size: 0.8rem;">
+                                    Vui lòng kiểm tra nội dung phản ánh và hỗ trợ khách hàng kịp thời.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a asp-controller="Admin" asp-action="Complaints" class="btn btn-sm btn-cafe-primary rounded-pill px-3 fw-bold text-nowrap">
+                                Xử lý ngay <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+            }
 
             <!-- Global Alert Container -->
             <div class="container-fluid px-4 mt-3" id="globalAlertContainer">

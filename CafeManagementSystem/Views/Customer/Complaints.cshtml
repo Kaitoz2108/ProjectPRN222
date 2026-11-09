@@ -25,8 +25,9 @@
                     @if (!Model.EligibleOrders.Any())
                     {
                         <div class="text-center py-4 text-muted">
-                            <i class="bi bi-info-circle fs-2 d-block mb-2 opacity-50"></i>
-                            <span class="small">Bạn chưa có đơn hàng nào đủ điều kiện để gửi khiếu nại.</span>
+                            <i class="bi bi-check2-circle fs-2 d-block mb-2 text-success opacity-75"></i>
+                            <span class="small fw-semibold text-dark d-block mb-1">Không có đơn hàng nào cần khiếu nại</span>
+                            <span class="small text-muted">Mỗi đơn hàng chỉ được khiếu nại 1 lần. Tất cả các đơn hàng của bạn đều đã được gửi phản hồi hoặc bạn chưa có đơn hàng mới nào.</span>
                         </div>
                     }
                     else

@@ -135,9 +135,18 @@
                                     <a asp-action="Bill" asp-route-id="@ord.OrderId" class="btn btn-cafe-outline btn-sm rounded-pill">
                                         <i class="bi bi-receipt me-1"></i> Hóa đơn
                                     </a>
-                                    <a asp-action="Complaints" class="btn btn-cafe-outline btn-sm rounded-pill text-danger">
-                                        <i class="bi bi-chat-dots me-1"></i> Góp ý
-                                    </a>
+                                    @if (ord.Complaints != null && ord.Complaints.Any())
+                                    {
+                                        <a asp-action="Complaints" class="btn btn-sm btn-outline-secondary rounded-pill text-muted" title="Đơn hàng này đã được gửi khiếu nại">
+                                            <i class="bi bi-chat-check me-1 text-success"></i> Đã gửi góp ý
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="Complaints" class="btn btn-cafe-outline btn-sm rounded-pill text-danger">
+                                            <i class="bi bi-chat-dots me-1"></i> Góp ý
+                                        </a>
+                                    }
                                 </div>
                             </div>
                         </div>
