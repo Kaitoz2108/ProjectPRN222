@@ -107,3 +107,32 @@ public class InventoryTransactionViewModel
     public string PerformedByName { get; set; } = string.Empty;
     public string? ReasonOrNote { get; set; }
 }
+
+public class CompletedHistoryViewModel
+{
+    public List<CompletedOrderViewModel> Orders { get; set; } = new();
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
+    public string? Search { get; set; }
+    public int TotalOrders { get; set; }
+    public int TotalCups { get; set; }
+    public decimal TotalRevenue { get; set; }
+}
+
+public class CompletedOrderViewModel
+{
+    public int OrderId { get; set; }
+    public string OrderCode { get; set; } = string.Empty;
+    public string OrderSource { get; set; } = string.Empty;
+    public string PreparationStatus { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public decimal TotalAmount { get; set; }
+    public int TotalCups { get; set; }
+    public int ProcessingMinutes { get; set; }
+    public string? OrderNote { get; set; }
+    public string? CustomerName { get; set; }
+    public string? CustomerPhone { get; set; }
+    public string? BaristaName { get; set; }
+    public List<KdsOrderItemViewModel> Items { get; set; } = new();
+}

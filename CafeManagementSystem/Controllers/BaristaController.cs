@@ -245,6 +245,86 @@ public class BaristaController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> CompletedHistory(DateTime? fromDate, DateTime? toDate, string? search)
+    {
+        var query = _context.Orders
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Variant)
+                    .ThenInclude(v => v.Product)
+            .Include(o => o.Customer)
+            .Include(o => o.Barista)
+            .Where(o => o.PreparationStatus == "Ready" || o.PreparationStatus == "Completed")
+            .AsQueryable();
+
+        if (fromDate.HasValue)
+        {
+            var from = fromDate.Value.Date;
+            query = query.Where(o => (o.CompletedAt ?? o.CreatedAt) >= from);
+        }
+
+        if (toDate.HasValue)
+        {
+            var to = toDate.Value.Date.AddDays(1);
+            query = query.Where(o => (o.CompletedAt ?? o.CreatedAt) < to);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var keyword = search.Trim();
+            query = query.Where(o => o.OrderCode.Contains(keyword)
+                || (o.Customer != null && o.Customer.FullName.Contains(keyword))
+                || (o.Customer != null && o.Customer.Phone.Contains(keyword)));
+        }
+
+        var orders = await query
+            .OrderByDescending(o => o.CompletedAt ?? o.CreatedAt)
+            .ToListAsync();
+
+        var viewModel = new CompletedHistoryViewModel
+        {
+            FromDate = fromDate,
+            ToDate = toDate,
+            Search = search,
+            Orders = orders.Select(o =>
+            {
+                var finishedAt = o.CompletedAt ?? o.CreatedAt;
+                var processing = (finishedAt - o.CreatedAt).TotalMinutes;
+                return new CompletedOrderViewModel
+                {
+                    OrderId = o.OrderId,
+                    OrderCode = o.OrderCode,
+                    OrderSource = o.OrderSource,
+                    PreparationStatus = o.PreparationStatus,
+                    CreatedAt = o.CreatedAt,
+                    CompletedAt = o.CompletedAt,
+                    TotalAmount = o.TotalAmount,
+                    TotalCups = o.OrderItems.Sum(oi => oi.Quantity),
+                    ProcessingMinutes = processing > 0 ? (int)processing : 0,
+                    OrderNote = o.OrderNote,
+                    CustomerName = o.Customer?.FullName,
+                    CustomerPhone = o.Customer?.Phone,
+                    BaristaName = o.Barista?.FullName,
+                    Items = o.OrderItems.Select(oi => new KdsOrderItemViewModel
+                    {
+                        ProductName = oi.Variant?.Product?.ProductName ?? string.Empty,
+                        SizeName = oi.Variant?.SizeName ?? string.Empty,
+                        Quantity = oi.Quantity,
+                        SugarLevel = oi.SugarLevel,
+                        IceLevel = oi.IceLevel,
+                        ItemNote = oi.ItemNote
+                    }).ToList()
+                };
+            }).ToList()
+        };
+
+        viewModel.TotalOrders = viewModel.Orders.Count;
+        viewModel.TotalCups = viewModel.Orders.Sum(o => o.TotalCups);
+        viewModel.TotalRevenue = viewModel.Orders.Sum(o => o.TotalAmount);
+
+        return View(viewModel);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Wastage()
     {
         var ingredients = await _context.Ingredients
