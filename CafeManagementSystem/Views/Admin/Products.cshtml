@@ -1,0 +1,244 @@
+@model List<CafeManagementSystem.Models.Entities.Product>
+@using CafeManagementSystem.Models.Entities
+@{
+    ViewData["Title"] = "Quản lý thực đơn";
+    var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
+    var ingredients = ViewBag.Ingredients as List<Ingredient> ?? new List<Ingredient>();
+}
+
+<div class="container-fluid py-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 mb-1"><i class="bi bi-cup-hot text-primary me-2"></i>Quản lý thực đơn</h1>
+            <p class="text-muted mb-0">Danh mục, món nước, size, giá bán và công thức nguyên liệu</p>
+        </div>
+        <a asp-action="Inventory" class="btn btn-outline-success"><i class="bi bi-box-seam me-1"></i>Quản lý kho</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold"><i class="bi bi-folder-plus me-1"></i>Thêm danh mục</div>
+                <div class="card-body">
+                    <form asp-action="CreateCategory" method="post">
+                        <div class="mb-3">
+                            <label class="form-label" for="categoryName">Tên danh mục</label>
+                            <input class="form-control" id="categoryName" name="categoryName" maxlength="100" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="categoryDescription">Mô tả</label>
+                            <textarea class="form-control" id="categoryDescription" name="description" maxlength="255" rows="2"></textarea>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Thêm danh mục</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-bold"><i class="bi bi-plus-circle me-1"></i>Thêm món nước</div>
+                <div class="card-body">
+                    @if (categories.Count == 0)
+                    {
+                        <div class="alert alert-warning mb-0">Hãy tạo danh mục trước khi thêm món nước.</div>
+                    }
+                    else
+                    {
+                        <form asp-action="CreateProduct" method="post">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="productName">Tên món</label>
+                                    <input class="form-control" id="productName" name="productName" maxlength="150" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="categoryId">Danh mục</label>
+                                    <select class="form-select" id="categoryId" name="categoryId" required>
+                                        <option value="">-- Chọn danh mục --</option>
+                                        @foreach (var category in categories)
+                                        {
+                                            <option value="@category.CategoryId">@category.CategoryName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="productDescription">Mô tả</label>
+                                    <textarea class="form-control" id="productDescription" name="description" maxlength="500" rows="2"></textarea>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label" for="imageUrl">URL hình ảnh</label>
+                                    <input class="form-control" id="imageUrl" name="imageUrl" maxlength="500" type="url" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn btn-success w-100" type="submit">Thêm món nước</button>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold"><i class="bi bi-list-ul me-1"></i>Danh sách món nước</span>
+            <span class="badge bg-secondary">@Model.Count món</span>
+        </div>
+        <div class="card-body">
+            @if (Model.Count == 0)
+            {
+                <p class="text-muted mb-0">Chưa có sản phẩm nào.</p>
+            }
+            else
+            {
+                <div class="accordion" id="productsAccordion">
+                    @foreach (var product in Model)
+                    {
+                        var productPanelId = $"product_{product.ProductId}";
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading_@product.ProductId">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@productPanelId">
+                                    <span class="fw-bold me-2">@product.ProductName</span>
+                                    <span class="badge bg-light text-dark border me-2">@(product.Category?.CategoryName ?? "Chưa phân loại")</span>
+                                    @if (product.IsAvailable)
+                                    {
+                                        <span class="badge bg-success">Đang bán</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Tạm ngừng</span>
+                                    }
+                                </button>
+                            </h2>
+                            <div id="@productPanelId" class="accordion-collapse collapse" data-bs-parent="#productsAccordion">
+                                <div class="accordion-body">
+                                    <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+                                        <div>
+                                            @if (!string.IsNullOrWhiteSpace(product.Description))
+                                            {
+                                                <p class="text-muted mb-1">@product.Description</p>
+                                            }
+                                            <small class="text-muted">Tạo ngày: @product.CreatedAt.ToString("dd/MM/yyyy")</small>
+                                        </div>
+                                        <form asp-action="ToggleProductAvailability" method="post">
+                                            <input type="hidden" name="productId" value="@product.ProductId" />
+                                            <button class="btn btn-sm @(product.IsAvailable ? "btn-outline-danger" : "btn-outline-success")" type="submit">
+                                                @(product.IsAvailable ? "Tắt bán" : "Bật bán")
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="row g-3">
+                                        <div class="col-lg-5">
+                                            <div class="border rounded p-3 h-100">
+                                                <h6 class="fw-bold">Thêm size & giá</h6>
+                                                <form asp-action="AddVariant" method="post">
+                                                    <input type="hidden" name="productId" value="@product.ProductId" />
+                                                    <div class="row g-2 align-items-end">
+                                                        <div class="col-5">
+                                                            <label class="form-label small" for="size_@product.ProductId">Size</label>
+                                                            <select class="form-select form-select-sm" id="size_@product.ProductId" name="sizeName" required>
+                                                                <option value="S">S</option>
+                                                                <option value="M">M</option>
+                                                                <option value="L">L</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-7">
+                                                            <label class="form-label small" for="price_@product.ProductId">Giá bán</label>
+                                                            <div class="input-group input-group-sm">
+                                                                <input class="form-control" id="price_@product.ProductId" name="price" type="number" min="1" step="0.01" required />
+                                                                <span class="input-group-text">đ</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button class="btn btn-primary btn-sm mt-3" type="submit">Thêm size</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-7">
+                                            <h6 class="fw-bold">Các size và công thức</h6>
+                                            @if (product.ProductVariants.Count == 0)
+                                            {
+                                                <p class="text-muted small">Chưa có size nào.</p>
+                                            }
+                                            else
+                                            {
+                                                <div class="accordion" id="variants_@product.ProductId">
+                                                    @foreach (var variant in product.ProductVariants.OrderBy(item => item.SizeName))
+                                                    {
+                                                        var variantPanelId = $"variant_{variant.VariantId}";
+                                                        <div class="accordion-item">
+                                                            <h2 class="accordion-header" id="variantHeading_@variant.VariantId">
+                                                                <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#@variantPanelId">
+                                                                    <span class="fw-bold me-3">Size @variant.SizeName</span>
+                                                                    <span>@variant.Price.ToString("N0") đ</span>
+                                                                </button>
+                                                            </h2>
+                                                            <div id="@variantPanelId" class="accordion-collapse collapse" data-bs-parent="#variants_@product.ProductId">
+                                                                <div class="accordion-body p-3">
+                                                                    <div class="table-responsive mb-3">
+                                                                        <table class="table table-sm align-middle mb-0">
+                                                                            <thead><tr><th>Nguyên liệu</th><th>Định lượng</th><th>Hướng dẫn</th><th></th></tr></thead>
+                                                                            <tbody>
+                                                                                @foreach (var recipe in variant.ProductRecipes)
+                                                                                {
+                                                                                    <tr>
+                                                                                        <td>@recipe.Ingredient?.IngredientName</td>
+                                                                                        <td>@recipe.QuantityRequired.ToString("N2") @recipe.Ingredient?.Unit</td>
+                                                                                        <td>@(recipe.PreparationGuide ?? "-")</td>
+                                                                                        <td>
+                                                                                            <form asp-action="DeleteRecipe" method="post" onsubmit="return confirm('Xóa nguyên liệu này khỏi công thức?');">
+                                                                                                <input type="hidden" name="recipeId" value="@recipe.RecipeId" />
+                                                                                                <button class="btn btn-outline-danger btn-sm" type="submit" title="Xóa"><i class="bi bi-trash"></i></button>
+                                                                                            </form>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                                @if (variant.ProductRecipes.Count == 0)
+                                                                                {
+                                                                                    <tr><td colspan="4" class="text-muted">Chưa có nguyên liệu.</td></tr>
+                                                                                }
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                    <form asp-action="SaveRecipe" method="post" class="border-top pt-3">
+                                                                        <input type="hidden" name="variantId" value="@variant.VariantId" />
+                                                                        <div class="row g-2 align-items-end">
+                                                                            <div class="col-md-4">
+                                                                                <label class="form-label small" for="ingredient_@variant.VariantId">Nguyên liệu</label>
+                                                                                <select class="form-select form-select-sm" id="ingredient_@variant.VariantId" name="ingredientId" required>
+                                                                                    <option value="">-- Chọn --</option>
+                                                                                    @foreach (var ingredient in ingredients)
+                                                                                    {
+                                                                                        <option value="@ingredient.IngredientId">@ingredient.IngredientName (@ingredient.Unit)</option>
+                                                                                    }
+                                                                                </select>
+                                                                            </div>
+                                                                            <div class="col-md-3">
+                                                                                <label class="form-label small" for="quantity_@variant.VariantId">Định lượng</label>
+                                                                                <input class="form-control form-control-sm" id="quantity_@variant.VariantId" name="quantityRequired" type="number" min="0.01" step="0.01" required />
+                                                                            </div>
+                                                                            <div class="col-md-5">
+                                                                                <label class="form-label small" for="guide_@variant.VariantId">Hướng dẫn pha chế</label>
+                                                                                <input class="form-control form-control-sm" id="guide_@variant.VariantId" name="preparationGuide" maxlength="500" />
+                                                                            </div>
+                                                                        </div>
+                                                                        <button class="btn btn-success btn-sm mt-2" type="submit">Lưu công thức</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
